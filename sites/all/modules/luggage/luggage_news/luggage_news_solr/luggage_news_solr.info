@@ -1,0 +1,12 @@
+name = luggage_news_solr
+description = News Type vocabulary solr integration
+core = 7.x
+package = Luggage
+version = 7.x-3.1
+project = luggage_news_solr
+dependencies[] = ctools
+dependencies[] = facetapi
+features[ctools][] = facetapi:facetapi_defaults:1
+features[facetapi][] = apachesolr@solr:block:im_field_news_type
+features[features_api][] = api:2
+github = https://raw.github.com/isubit/luggage_news_solr/master/luggage_news_solr.info

@@ -1,0 +1,24 @@
+#turtle-svg {
+  display: none;
+  max-width: 300px;
+}
+
+#turtle-svg:not(.noclick) #scutes > g:hover .scute {
+  cursor: pointer;
+  fill: #cc0000;
+}
+
+#turtle-svg #scutes > g.active .scute {
+  fill: #cc0000;
+}
+
+#turtle-svg:not(.noclick) #scutes > #left-scute-13:hover .scute,
+#turtle-svg:not(.noclick) #scutes > #right-scute-13:hover .scute {
+  cursor: pointer;
+  fill: #660000;
+}
+
+#turtle-svg #scutes > #left-scute-13.active .scute,
+#turtle-svg #scutes > #right-scute-13.active .scute {
+  fill: #660000;
+}

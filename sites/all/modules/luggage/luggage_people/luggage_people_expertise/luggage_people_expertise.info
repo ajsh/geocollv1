@@ -1,0 +1,12 @@
+name = luggage_people_expertise
+description = A listing of "Area of Expertise" terms with associated people
+core = 7.x
+package = Luggage
+version = 7.x-3.2
+project = luggage_people_expertise
+dependencies[] = ctools
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = expertise
+github = https://raw.github.com/isubit/luggage_people_expertise/master/luggage_people_expertise.info

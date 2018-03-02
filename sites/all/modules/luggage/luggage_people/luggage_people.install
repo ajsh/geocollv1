@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_people_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_people')
+    ->execute();
+}
+
+/*
+ * Update auto_entitylabel_pattern_node_people and pathauto_node_people_pattern with correct tokens.
+ */
+function luggage_people_update_7300() {
+  // Grab entitylabel value from the variable table.
+  $luggage_people_entitylabel = variable_get('auto_entitylabel_pattern_node_people');
+
+  // Updates auto_entitylabel_pattern_node_people with tokens that will accept special characters like " and '.
+  if ($luggage_people_entitylabel != NULL && $luggage_people_entitylabel == '[node:field_people_title] [node:field_people_first_name] [node:field_people_middle_initial] [node:field_people_last_name]') {
+      variable_set('auto_entitylabel_pattern_node_people', '[node:field-people-title] [node:field-people-first-name] [node:field-people-middle-initial] [node:field-people-last-name]');
+  }
+
+  // Grab pathauto value from the variable table.
+  $luggage_people_pathauto = variable_get('pathauto_node_people_pattern');
+
+  // Updates pathauto_node_people_pattern with tokens that will accept special characters like " and '.
+  if ($luggage_people_pathauto != NULL && $luggage_people_pathauto == 'people/[node:field_people_first_name]-[node:field_people_last_name]') {
+      variable_set('pathauto_node_people_pattern', 'people/[node:field-people-first-name]-[node:field-people-last-name]');
+  }
+}

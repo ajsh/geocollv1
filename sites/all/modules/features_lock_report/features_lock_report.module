@@ -1,0 +1,174 @@
+<?php
+/**
+ * @file
+ * Code for features_lock_report module
+ */
+
+ /**
+  * Implements hook_requirements().
+  */
+function features_lock_report_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime') {
+    $description = t('View a <a href="@url">report on feature overrides and locks</a>.', array('@url' => url('admin/reports/features-lock')));
+
+    $severity = features_lock_report_report(TRUE);
+
+    switch ($severity) {
+      case 'OK':
+        $severity = REQUIREMENT_OK;
+        $value = t('All overrides are locked.');
+        break;
+      case 'Warning':
+        $severity = REQUIREMENT_WARNING;
+        $value = t('There are locked components that are not overridden.');
+        break;
+      case 'Error':
+        $severity = REQUIREMENT_ERROR;
+        $value = t('There are overridden components that are not locked and are at risk of being reverted.');
+        break;
+    }
+
+    $requirements['features_lock_report'] = array(
+      'title' => 'Features Lock Report',
+      'description' => $description,
+      'value' => $value,
+      'severity' => $severity,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function features_lock_report_menu() {
+  $items['admin/reports/features-lock'] = array(
+    'title' => "Features Lock Report",
+    'page callback' => 'features_lock_report_page',
+    'access arguments' => array('access site reports'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * hook_menu()'s callback for lock-report path
+ */
+function features_lock_report_page() {
+  $report = features_lock_report_report();
+
+  $html = '<table><tr><th>Feature:Component</th><th>Locked</th><th>Overridden</th></tr>';
+
+  foreach ($report as $module => $components) {
+    foreach ($components as $component => $state) {
+      // If locked and overridden, display row green.
+      if ($state['locked'] == $state['overridden']) {
+        $class = 'ok';
+      }
+      // If locked and not overridden, display row yellow.
+      if ($state['locked'] && !$state['overridden']) {
+        $class = 'warning';
+      }
+      // If not locked and overridden, display row red.
+      if (!$state['locked'] && $state['overridden']) {
+        $class = 'error';
+      }
+
+      $url = url('admin/structure/features/' . $module);
+
+      $html .= '<tr class="' . $class . '"><td><a href="' . $url . '">' . $module . ':' . $component . '</a></td>';
+      $html .= '<td align="center">' . $state['locked'] . '</td>';
+      $html .= '<td align="center">' . $state['overridden'] . '</td>';
+      $html .= '</tr>';
+    }
+  }
+
+  $html .= '</table>';
+
+  return $html;
+}
+
+/**
+ * Returns an array of feature components that are overridden and/or locked.
+ * @param $summary - Set to TRUE to only return "OK", "Warning", or "Error"
+ * depending on the worst-case component.
+ *
+ * @return $report - An array with feature components with lock and overridden
+ * states. If $summary is TRUE, it will return a string "OK", "Warning", or
+ * "Error" depending on the worst-case component.
+ */
+function features_lock_report_report($summary = FALSE) {
+  // 0 = OK, 1 = Warning, 2 = Error
+  $worst_case = '0';
+
+  // Get the feature locks.
+  $locks = variable_get('features_feature_locked');
+
+  // Bring in features.export.inc to get state of feature components.
+  module_load_include('inc', 'features', 'features.export');
+  $modules = features_get_component_states(array(), FALSE);
+
+  // Create the report array that contains only information about enabled
+  // modules and their overridden and locked states.
+  foreach ($modules as $module => $components) {
+    // Disabled modules have no components.
+    if (!empty($components)) {
+      foreach ($components as $component => $value) {
+        // Record overridden value.
+        if ($value != 0) {
+          $report[$module][$component]['overridden'] = TRUE;
+        }
+        else {
+          $report[$module][$component]['overridden'] = FALSE;
+        }
+
+        // Record locked value.
+        if (isset($locks[$module][$component]) && $locks[$module][$component] == 1) {
+          $report[$module][$component]['locked'] = TRUE;
+        }
+        else {
+          $report[$module][$component]['locked'] = FALSE;
+        }
+
+        // If the component is overridden and not locked, set $worst_case to Error.
+        if ($report[$module][$component]['locked'] == FALSE && $report[$module][$component]['overridden'] == TRUE) {
+          $worst_case = 2;
+        }
+        // If the component is not overridden, and is locked, set $worst_case to Warning.
+        elseif ($report[$module][$component]['locked'] == TRUE && $report[$module][$component]['overridden'] == FALSE) {
+          if ($worst_case < 1) {
+            $worst_case = 1;
+          }
+        }
+
+        // If the component is both unlocked and default, we don't care to
+        // report it. Remove it from the array.
+        if ($report[$module][$component]['locked'] == FALSE && $report[$module][$component]['overridden'] == FALSE) {
+          unset($report[$module][$component]);
+        }
+      }
+    }
+  }
+
+  // Return the appropriate string if $summary is TRUE.
+  if ($summary) {
+    switch ($worst_case) {
+      case 0:
+        return "OK";
+        break;
+      case 1:
+        return "Warning";
+        break;
+      case 2:
+        return "Error";
+        break;
+      default:
+        return "Error";
+    }
+  }
+
+  return $report;
+}

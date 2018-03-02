@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_resources_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_resources')
+    ->execute();
+}
+
+/**
+ * Removes redundant fields: field_resource_meta and field_resource_title.
+ */
+function luggage_resources_update_7300() {
+  if (field_info_field('field_resource_meta') != NULL) {
+    field_delete_field('field_resource_meta');
+  }
+
+  if (field_info_field('field_resource_title') != NULL) {
+    field_delete_field('field_resource_title');
+  }
+}

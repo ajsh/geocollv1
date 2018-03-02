@@ -1,0 +1,24 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_people_expertise feature.
+ */
+
+include_once 'luggage_people_expertise.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_people_expertise_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_people_expertise']);
+}
+
+/**
+ *  Implements hook_views_pre_view()
+ */
+function luggage_people_expertise_views_pre_view(&$view, &$display_id, &$args) {
+  if($view->name == 'expertise') {
+    drupal_add_css(drupal_get_path('module', 'luggage_people_expertise').'/css/luggage_people_expertise.css');
+  }
+}

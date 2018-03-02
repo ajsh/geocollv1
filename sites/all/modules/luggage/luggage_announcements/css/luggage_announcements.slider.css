@@ -1,0 +1,36 @@
+.view-luggage-announcements .flexslider {
+	background: none;
+	border: none;
+	border-radius: none;
+	box-shadow: none;
+}
+
+.view-luggage-announcements .flexslider .slides {
+    padding: 0;
+}
+
+.view-luggage-announcements .flexslider .slides li img {
+    width: 100%;
+    height: auto;
+	margin: 0em;
+	padding: 0em;
+}
+
+.view-luggage-announcements .flexslider .flex-caption {
+	color:#000;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.view-luggage-announcements .flexslider .flex-caption p {
+    margin: 0;
+}
+
+.view-luggage-announcements .flexslider .flex-control-nav {
+	z-index:2;
+}
+
+.view-luggage-announcements .flexslider .flex-direction-nav a {
+	height: 45px;
+	border: none;
+}

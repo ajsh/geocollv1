@@ -1,0 +1,176 @@
+@media all and (min-width: 1220px) {
+  .page-observations .container-12:not(.sticky-top) {
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+tr.suspicious-T,
+tr.suspicious-T td {
+  background:#f0ad4e!important;
+}
+
+/* Duplicate suitcase_interim's responsive table CSS to change out the media
+ * query for the .stacked-table class. */
+
+/* -------------------- */
+/* No headers (none) */
+
+.stacked-table .responsive-table.table-none { display: table; min-width: 75%; max-width: 500px; }
+
+.stacked-table .responsive-table.table-none tr { border-bottom: 3px solid #bbb; }
+.stacked-table .responsive-table.table-none td {
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    display: block;
+}
+
+.stacked-table .responsive-table.table-none td:last-of-type { border-bottom: none; }
+
+/* -------------------- */
+/* Headers in first row */
+
+.stacked-table .responsive-table.table-row { display: table; min-width: 75%; }
+
+.stacked-table .responsive-table.table-row th { display: none; }
+
+.stacked-table .responsive-table.table-row tr {
+    display: block;
+    border-bottom: 3px solid #bbb;
+}
+
+.stacked-table .responsive-table.table-row tr:first-of-type { border-bottom: 0; }
+
+.stacked-table .responsive-table.table-row td {
+    display: flex;
+    padding: 0;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+.stacked-table .responsive-table.table-row td:last-of-type { border-bottom: none; }
+
+.stacked-table .cell-content {
+    display: block;
+    flex: 1 1 50%;
+    padding: 0.5rem 0.75rem;
+}
+
+.stacked-table .row-header {
+    display: block;
+    flex: 0 1 45%;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    background: #eee;
+}
+
+.stacked-table .table-row tr { border-bottom: 3px solid #bbb; }
+
+/* -------------------- */
+/* Headers in first column */
+
+.stacked-table .responsive-table.table-col { display: table; min-width: 75%; max-width: 500px; }
+
+.stacked-table .responsive-table.table-col th,
+.stacked-table .responsive-table.table-col td { display: block; }
+
+.stacked-table .responsive-table.table-col th { border-bottom: 1px solid #bbb; }
+
+.stacked-table .responsive-table.table-col tr {
+    display: block;
+    border-bottom: 1px solid #ddd;
+}
+
+.stacked-table .responsive-table.table-col td {
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    display: block;
+}
+
+.stacked-table .responsive-table.table-col td:last-of-type { border-bottom: none; }
+
+/* -------------------- */
+/* Headers in both first row and first column */
+
+.stacked-table .responsive-table.table-both { display: table; min-width: 75%; max-width: 500px; }
+
+.stacked-table .responsive-table.table-both th,
+.stacked-table .responsive-table.table-both td { display: block; }
+
+.stacked-table .responsive-table.table-both th { border-bottom: 1px solid #bbb; }
+
+.stacked-table .responsive-table.table-both tr {
+    display: block;
+    border-bottom: 3px solid #bbb;
+}
+
+.stacked-table .responsive-table.table-both tr:first-of-type { display: none; }
+
+.stacked-table .responsive-table.table-both tr:first-of-type th:first-of-type { display: none; }
+
+.stacked-table .responsive-table.table-both tr:nth-of-type(2) { border-top: 1px solid #ddd; }
+
+.stacked-table .responsive-table.table-both td {
+    display: flex;
+    padding: 0;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+.stacked-table .responsive-table.table-both td:last-of-type { border-bottom: none; }
+
+.stacked-table .both-cell-content {
+    display: block;
+    flex: 1 1 50%;
+    padding: 0.5rem 0.75rem;
+}
+
+.stacked-table .both-row-header {
+    display: block;
+    flex: 0 1 45%;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    background: #eee;
+}
+
+/* -------------------- */
+
+/* Tabletop scrollbar */
+
+.views-tabletop-scrollbar .table-wrapper {
+    overflow-x: scroll;
+}
+
+.views-tabletop-scrollbar .scrollbar-wrapper {
+    height: 2rem;
+    overflow-x: scroll;
+}
+
+.views-tabletop-scrollbar .scrollbar {
+    height: 2rem;
+}
+
+.views-tabletop-scrollbar .table-wrapper::-webkit-scrollbar,
+.views-tabletop-scrollbar .scrollbar-wrapper::-webkit-scrollbar {
+    -webkit-appearance: none;
+}
+
+.views-tabletop-scrollbar .table-wrapper::-webkit-scrollbar:horizontal,
+.views-tabletop-scrollbar .scrollbar-wrapper::-webkit-scrollbar:horizontal {
+    height: 11px;
+}
+
+.views-tabletop-scrollbar .table-wrapper::-webkit-scrollbar-thumb:horizontal,
+.views-tabletop-scrollbar .scrollbar-wrapper::-webkit-scrollbar-thumb:horizontal {
+    border-radius: 8px;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, .5);
+}
+
+.views-tabletop-scrollbar .table-wrapper::-webkit-scrollbar-track:horizontal,
+.views-tabletop-scrollbar .scrollbar-wrapper::-webkit-scrollbar-track:horizontal {
+    background-color: #fff;
+    border-radius: 8px;
+}
+

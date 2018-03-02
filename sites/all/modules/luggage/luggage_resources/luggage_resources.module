@@ -1,0 +1,378 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_resources feature. This feature creates a node with
+ * information about an external URL, including a screenshot.
+ */
+
+include_once 'luggage_resources.features.inc';
+
+/**
+ * Implementation of hook_menu().
+ */
+function luggage_resources_menu() {
+  $items['admin/config/system/resources'] = array(
+    'title' => 'Luggage Resources',
+    'description' => 'Configure Luggage Resources.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('luggage_resources_settings'),
+    'access arguments' => array('configure luggage resources'),
+    'file' => 'luggage_resources.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_resources_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_resources']);
+}
+
+// Adds CSS to view display of luggage_resources node type but not the edit display
+function luggage_resources_preprocess_page(&$vars) {
+  // Global node.
+  $node = menu_get_object();
+  if (!empty($node) && $node->type == 'resource' && arg(2) === null) {
+    drupal_add_css(drupal_get_path('module', 'luggage_resources') . '/css/luggage_resources.css');
+  }
+  // Add styling for search results and node/add pages
+  if (arg(0) == 'search' || arg(0) == 'node' && arg(1) == 'add' && arg(2) === 'resource') {
+    drupal_add_css(drupal_get_path('module', 'luggage_resources') . '/css/luggage_resources.css');
+  }
+}
+
+// Adding support to discover template files
+/**
+ * Implements hook_theme_registry_alter()
+ **/
+function luggage_resources_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'luggage_resources');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _luggage_resources_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _luggage_resources_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implememnts hook_form_FORMID_alter().
+ */
+function luggage_resources_form_resource_node_form_alter(&$form, &$form_state, $form_id) {
+  // changes just to the insert form
+  if(arg(1) == 'add') {
+
+    // Hide all except field_uri
+    reset($form);
+    while ($key = key($form)) {
+      $key_prefix = substr($key, 0, 6);
+      if ($key !== "field_uri" && $key_prefix === 'field_') {
+        $form[$key]['#type'] = 'hidden';
+      }
+      next($form);
+    }
+
+    // Adding an After Build where much of the work is done
+    // TODO: There has to be a better way
+    $form['#after_build'][] = 'luggage_resources_add_after_build';
+
+    // remove field groups
+    unset($form['#groups']);
+    unset($form['#fieldgroups']);
+    unset($form['#group_children']);
+    unset($form['title']);
+  }
+
+  // disable form fields
+  _luggage_resources_disabled_form_fields($form);
+
+  // field_uri after__build and validate works on both upsert
+  $form['field_uri']['#after_build'][] = 'luggage_resources_field_uri_after_build';
+  $form['#validate'][] = 'luggage_resources_form_resource_node_validate';
+}
+
+// form fields disabled on the insert and update form
+function _luggage_resources_disabled_form_fields(&$form) {
+
+  // Array of field machine-names to disable
+  $disabled = array(
+    'field_resource_raw_title',
+    'field_resource_raw_description',
+    'field_resource_meta_keywords',
+    'field_resource_screenshot',
+    'field_resource_request_error',
+    'field_resource_request_code',
+    'field_resource_request_recode',
+    'field_resource_request_reurl',
+    'field_resource_request_inferred_',
+  );
+
+  // Add a few more if insert and not edit form
+  if (arg(1) == 'add') {
+    $disabled[] = 'field_resource_title';
+    $disabled[] = 'field_category';
+  }
+
+  // Set $disabled array to #disabled
+  foreach ($disabled as $disable) {
+    $form[$disable]['#disabled'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_node_validate(). 
+ */
+function luggage_resources_form_resource_node_validate($form, &$form_state) {
+  
+  // Easier to refer to entered URL.
+  $url = $form_state['values']['field_uri'][LANGUAGE_NONE][0]['url'];
+
+  // Fail validation if url is not valid.
+  if (!valid_url($url, TRUE)) {
+    form_set_error($form['field_uri'][LANGUAGE_NONE][0]['url'], t('Please make sure to include a protocol (e.g. http://, https://, ftp://).'));
+    return;
+  } 
+  
+  // Index the url if it is a new entry or set to be re-indexed.
+  $reindex = $form_state['values']['field_resource_re_index'][LANGUAGE_NONE][0]['value'] == '1';
+  if (arg(1) == 'add' || $reindex ) {
+    _luggage_resources_index_url($form_state, $url);
+  }
+
+  // Set reindex checkbox back to unchecked.
+  $form_state['values']['field_resource_re_index'][LANGUAGE_NONE][0]['value'] = "0";
+
+  // Set alt value for screenshot to title.
+  if (isset($form_state['values']['title'])) {
+    $form_state['values']['field_resource_screenshot']['und'][0]['alt'] = $form_state['values']['title'];
+  }
+
+}
+
+function _luggage_resources_index_url(&$form_state, $url) {
+
+  // retrieve url and parse out the meta-data
+  $url_data = _luggage_resources_get_url_data($url);
+  _luggage_resources_build_form_state($form_state, $url_data, $form_state['values']['field_resource_re_index'][LANGUAGE_NONE][0]['value']);
+
+  // Get Screenshot into Drupal and add it to the form_state.
+  if (isset($url_data['return']['preferred_screenshot_url'])) {
+    $file = system_retrieve_file($url_data['return']['preferred_screenshot_url'], NULL, TRUE, FILE_EXISTS_REPLACE);
+    // Refresh image style derivatives.
+    image_path_flush($file->uri);
+  }
+  else {
+    $file = _luggage_resources_get_screenshot($url);
+  }
+  if ($file == 'FAIL') {
+    drupal_set_message('Unable to download screenshot.', $type = 'error', $repeat = TRUE);
+  } else {
+    $form_state['values']['field_resource_screenshot'][LANGUAGE_NONE]['0']['fid'] = $file->fid;
+  }
+}
+
+function luggage_resources_node_insert($node) {
+  if ($node->type == 'resource') {
+    drupal_set_message('Please enter some descriptive tags, check the title and description.', $type = 'error', $repeat = TRUE);
+    drupal_goto('node/'.$node->nid.'/edit');
+  }
+}
+
+function luggage_resources_field_uri_after_build($element, &$form_state) {
+  $element[LANGUAGE_NONE][0]['url']['#description'] = 'e.g. http://example.com';
+  return $element;
+}
+
+function luggage_resources_add_after_build($form, &$form_state) {
+
+  // Suppress required during insert.
+  $form['field_resource_description'][LANGUAGE_NONE][0]['value']['#required'] = FALSE;
+  $form['field_tags'][LANGUAGE_NONE]['#required'] = FALSE;
+  $form['field_category'][LANGUAGE_NONE]['#required'] = FALSE;
+
+  return $form;
+}
+
+function _luggage_resources_get_url_data($url) {
+  $nullmessage = '';
+  $html = drupal_http_request($url);
+
+  $data['return']['code'] = isset($html->code) ? $html->code : $nullmessage;
+  $data['return']['error'] = isset($html->error) ? $html->error : $nullmessage;
+  $data['return']['redirect_code'] = isset($html->redirect_code) ? $html->redirect_code : $nullmessage;
+  $data['return']['redirect_url'] = isset($html->redirect_url) ? $html->redirect_url : $nullmessage;
+  $data['return']['url_actually_used'] = isset($html->redirect_url) ? $html->redirect_url : $url;
+
+  if(!isset($html->data) && isset($html->redirect_url)) {
+    $repaired_url = _luggage_resources_repair_url_using_redirect($url, $html->redirect_url);
+    $data['return']['inferred_url'] = $repaired_url;
+    $data['return']['url_actually_used'] = $repaired_url;
+    $html = drupal_http_request($repaired_url);
+  }
+
+  // Return early if the drupal error code is anything less than 0
+  if($html->code <= 0) return $data;
+
+  $doc = new DOMDocument();
+  $load_html_succeeded = @$doc->loadHTML($html->data);
+  $nodes = $doc->getElementsByTagName('title');
+  $data['title'] = $nodes->item(0)->nodeValue;
+
+  // Trim blank space before and after the title
+  if(strlen($data['title']) > 0) $data['title'] = trim($data['title'], " \t\n\r\0\x0B");
+
+  $metas = $doc->getElementsByTagName('meta');
+  for($i=0; $i<$metas->length; $i++) {
+    $meta = $metas->item($i);
+    if ($meta->getAttribute('charset')) $data['meta']['charset'][$meta->getAttribute('charset')] = '';
+    if ($meta->getAttribute('scheme')) $data['meta']['scheme'][$meta->getAttribute('scheme')] = '';
+    if ($meta->getAttribute('name')) $data['meta']['name'][$meta->getAttribute('name')] = $meta->getAttribute('content');
+    if ($meta->getAttribute('http-equiv')) $data['meta']['http-equiv'][$meta->getAttribute('http-equiv')] = $meta->getAttribute('content');
+    if ($meta->getAttribute('property')) $data['meta']['property'][$meta->getAttribute('property')] = $meta->getAttribute('content');
+    // Need to grep for author <a href="profile_url]?rel=author">Google</a>, and other things http://www.metatags.org/all_metatags
+  }
+  
+  // Support plugins. Plugins receive the DOMDocument instance and can populate $data. 
+  foreach (module_implements('luggage_resources_dom_data') as $module) {
+    $function = $module . '_luggage_resources_dom_data';
+    $function($doc, $data);
+  }
+
+  return $data;
+}
+
+// Implements hook_luggage_resources_dom_data()
+function luggage_resources_luggage_resources_dom_data($doc, &$data) {
+  $parsed = parse_url($data['return']['url_actually_used']);
+  if ($parsed['host'] == 'store.extension.iastate.edu') {    
+    $product_image_element = $doc->getElementByID('ContentPlaceHolder1_lnkProductPreview');
+    if ($product_image_element !== NULL) {
+      $data['return']['preferred_screenshot_url'] = $product_image_element->getAttribute('href');
+    }
+    
+    $product_description_element = $doc->getElementByID('ContentPlaceHolder1_lblDescription');
+    if ($product_description_element !== NULL) {
+      $description = check_plain($product_description_element->nodeValue);
+      $data['meta']['name']['description'] = $description;
+    }
+  }  
+}
+
+function _luggage_resources_build_form_state(&$form_state, $url_data, $reindex) {
+
+  // Because this is called from within validation, validation on
+  // string length has not been done; we truncate to field length
+  // defined in luggage_resources.features.field_base.inc.
+  $form_state['values']['field_resource_raw_title'][LANGUAGE_NONE][0]['value'] = (isset($url_data['title'])) ? substr($url_data['title'], 0, 255) : '';
+  $form_state['values']['field_resource_raw_description'][LANGUAGE_NONE][0]['value'] = (isset($url_data['meta']['name']['description'])) ? $url_data['meta']['name']['description'] : '';
+
+  $form_state['values']['field_resource_request_code'][LANGUAGE_NONE][0]['value'] = (isset($url_data['return']['code'])) ? $url_data['return']['code'] : '';
+  $form_state['values']['field_resource_request_error'][LANGUAGE_NONE][0]['value'] = (isset($url_data['return']['error'])) ? $url_data['return']['error'] : '';
+  $form_state['values']['field_resource_request_recode'][LANGUAGE_NONE][0]['value'] = (isset($url_data['return']['redirect_code'])) ? $url_data['return']['redirect_code'] : '';
+  $form_state['values']['field_resource_request_reurl'][LANGUAGE_NONE][0]['value'] = (isset($url_data['return']['redirect_url'])) ? $url_data['return']['redirect_url'] : '';
+  $form_state['values']['field_resource_request_inferred_'][LANGUAGE_NONE][0]['value'] = (isset($url_data['return']['inferred_url'])) ? $url_data['return']['inferred_url'] : '';
+
+
+  // Add a few more if not reindexing
+  if ($reindex == 0) {
+    $form_state['values']['field_resource_title'][LANGUAGE_NONE][0]['value'] = (isset($url_data['title'])) ? $url_data['title'] : '';
+    $form_state['values']['field_resource_description'][LANGUAGE_NONE][0]['value'] = (isset($url_data['meta']['name']['description'])) ? $url_data['meta']['name']['description'] : '';
+  };
+
+//  Iterate through meta tags
+  reset($url_data['meta']);
+  while ($type = key($url_data['meta'])) {
+    reset($url_data['meta'][$type]);
+    while ($value = key($url_data['meta'][$type])) {
+      $head_meta = array();
+      $head_meta['field_attribute_type'][LANGUAGE_NONE][0]['value'] = (isset($url_data['meta'][$type])) ? $type : '';
+      $head_meta['field_attribute'][LANGUAGE_NONE][0]['value'] = (isset($url_data['meta'][$type][$value])) ? $value : '';
+      $head_meta['field_content'][LANGUAGE_NONE][0]['value'] = (isset($url_data['meta'][$type][$value])) ? $url_data['meta'][$type][$value] : '';
+      $form_state['values']['field_resource_meta'][LANGUAGE_NONE][] = $head_meta;
+      next($url_data['meta'][$type]);
+    }
+    next($url_data['meta']);
+  }
+
+  // Set URL title
+//  $form_state['values']['title'] = (isset($url_data['title'])) ? $url_data['title'] : '';
+
+  // Explode the keywords
+  // TODO: Look up if the keywords already exist
+  unset($form_state['values']['field_resource_meta_keywords']);
+  $vid = taxonomy_vocabulary_machine_name_load('meta_keywords');
+  if (isset($url_data['meta']['name']['keywords'])) {
+    $meta_keywords = explode(',', $url_data['meta']['name']['keywords']);
+    foreach($meta_keywords as $keyword) {
+      // In English, keywords over 20 characters long are not reasonable. It is
+      // more likely that the web page used a delimiter other than a comma and
+      // the explode() above failed. Ignore and continue.
+      if (strlen($keyword) > 20) {
+        continue;
+      }
+      $form_state['values']['field_resource_meta_keywords'][LANGUAGE_NONE][] = array(
+        'tid' => 'autocreate',
+        'vid' => $vid->vid,
+        'name' => $keyword,
+        'vocabulary_machine_name' => 'meta_keywords',
+      );
+    }
+  }
+
+}
+
+/**
+ * Forms a url using an existing url and a relative path
+ * @param $url - http://example.com
+ * @param $redirect - node/view/14
+ * @return mixed
+ */
+function _luggage_resources_repair_url_using_redirect($url, $redirect) {
+  $schemes = array(0 => 'http://', 1 => 'https://', 2 => 'ftp://');
+  $scheme = '';
+  foreach($schemes as $key => $val) {
+    if(strpos($url, $val) !== FALSE) {
+      $scheme = $val;
+      break;
+    }
+  }
+  $revised_url = str_replace($scheme, '', $url); // http://example.com -> example.com
+  $url_last_char = substr($revised_url, -1);
+  $redirect_first_char = substr($redirect, 0, 1);
+  $revised_url = ($url_last_char == '/') ? substr($revised_url, 0, -1) : $revised_url; // example.com/ -> example.com
+  $redirect = ($redirect_first_char == '/') ? $redirect : '/' . $redirect;
+  return $scheme . $revised_url . $redirect;
+}
+
+function _luggage_resources_get_screenshot($url) {
+
+  // Encode url and create query string.
+  // Request Image from service
+  $screenshot_url = variable_get('luggage_resources_screenshot_url', 'http://api.ent.iastate.edu/screenshot/generate.wsgi');
+  $screenshot = drupal_http_request($screenshot_url . '?' . drupal_http_build_query(array('uri' => urlencode($url))),$options = array('max_redirects' => 0));
+
+  // Get contents and save into Drupal
+  if (isset($screenshot->redirect_url)) {
+    $file = system_retrieve_file($screenshot->redirect_url, NULL, TRUE, FILE_EXISTS_REPLACE);
+    // Refresh image style derivatives.
+    image_path_flush($file->uri);
+    return $file;
+  } else {
+    return 'FAIL';
+  }
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_isubit_solr feature.
+ */
+
+include_once 'luggage_isubit_solr.features.inc';

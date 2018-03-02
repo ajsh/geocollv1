@@ -1,0 +1,22 @@
+/*-------full node display styling-------*/
+
+.field-name-field-uri {
+  padding: 0px 15px;
+  font-style: italic;
+}
+
+.field-name-field-resource-description {
+  padding: 15px 0px;
+}
+
+.field-name-field-category {
+  clear: both;
+}
+
+/*----- Search results -----*/
+@media all and (min-width: 740px) {
+    .field-name-field-resource-screenshot {
+      float: left;
+      padding: 15px 15px 15px 0px;
+    }
+}

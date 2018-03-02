@@ -1,0 +1,31 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_ui feature.
+ */
+
+include_once 'luggage_ui.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_ui_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_ui']);
+}
+
+function luggage_ui_post_features_disable_feature ($component) {
+  $modules = array(
+    'dblog',
+    'field_ui',
+    'views_ui',
+    'ds_ui',
+  );
+  foreach ($modules as $module) {
+    if(module_exists($module)) {
+      module_disable(array($module));
+      drupal_uninstall_modules(array($module));
+    }
+  }
+
+}

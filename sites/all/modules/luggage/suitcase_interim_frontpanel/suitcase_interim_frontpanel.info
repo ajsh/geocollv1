@@ -1,0 +1,17 @@
+name = suitcase_interim_frontpanel
+core = 7.x
+package = Luggage
+version = 7.x-1.0
+project = suitcase_interim_frontpanel
+dependencies[] = ctools
+dependencies[] = luggage_announcements
+dependencies[] = luggage_events
+dependencies[] = luggage_news
+dependencies[] = page_manager
+dependencies[] = strongarm
+dependencies[] = panels
+features[ctools][] = page_manager:pages_default:1
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[page_manager_pages][] = front
+features[variable][] = site_frontpage

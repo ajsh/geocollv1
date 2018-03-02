@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_isubit_vars feature.
+ */
+
+include_once 'luggage_isubit_vars.features.inc';
+
+
+/**
+ * Implements hook_mail_alter().
+ */
+function luggage_isubit_vars_mail_alter(&$message) {
+  // don't send emails if configured in settings.php
+  // add `$conf['disable_email'] = TRUE;` to settings.php to disable email
+  if (variable_get('disable_email', FALSE)) {
+    $message['send'] = FALSE;
+  }
+}

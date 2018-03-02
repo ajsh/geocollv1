@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * Code for the News feature.
+ */
+
+include_once 'luggage_news.features.inc';
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function luggage_news_views_pre_render(&$view) {
+  $luggage_news_view = array('news', 'news');
+  if (in_array($view->name, $luggage_news_view)) {
+    //drupal_add_js(drupal_get_path('module', 'td_deals') . '/td_deals.js');
+    $luggage_news_module_path = drupal_get_path('module', 'luggage_news');
+    //drupal_add_js($contextual_module_path . '/contextual.js');
+    drupal_add_css($luggage_news_module_path . '/css/luggage_news.css');
+  }
+}
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_news_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_news']);
+}
+
+/**
+ * Implements theme_preprocess_node()
+ */
+function luggage_news_preprocess_node(&$vars) {
+  // rewrite the display of the "Display author and date information" to be nicer for only
+  // news items.
+  if($vars['submitted'] && $vars['type'] == "news") {
+    $vars['submitted'] = t("%datetime",
+      array('%datetime' => format_date($vars['node']->created, 'news')));
+  }
+}

@@ -1,0 +1,16 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_projects feature.
+ */
+
+include_once 'luggage_projects.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_projects_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_projects']);
+}
+

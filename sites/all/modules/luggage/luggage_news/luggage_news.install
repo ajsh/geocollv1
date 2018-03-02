@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_news_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_news')
+    ->execute();
+}
+
+/**
+ * Update news node description.
+ */
+function luggage_news_update_7300() {
+  db_update('node_type')
+    ->fields(array('description' => 'Post about recent and important information in chronological order.'))
+    ->condition('module', 'luggage_news')
+    ->execute();
+}

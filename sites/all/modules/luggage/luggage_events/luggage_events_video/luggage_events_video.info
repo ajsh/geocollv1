@@ -1,0 +1,17 @@
+name = luggage_events_video
+description = Add a video field to events content type
+core = 7.x
+package = Luggage
+version = 7.x-1.0
+dependencies[] = ctools
+dependencies[] = features
+dependencies[] = field_group
+dependencies[] = luggage_events
+dependencies[] = luggage_video
+dependencies[] = text
+dependencies[] = video_embed_field
+features[ctools][] = field_group:field_group:1
+features[features_api][] = api:2
+features[field_group][] = group_video|node|event|form
+features[field_instance][] = node-event-field_video_transcript
+features[field_instance][] = node-event-field_video_video

@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_contrib_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_contrib')
+    ->execute();
+
+  // Create 'Friendly' date format
+  db_insert('date_format_type')
+    ->fields(array(
+      'type' => 'friendly',
+      'title' => 'Friendly',
+      'locked' => 0,
+    ))->execute();
+
+  variable_set('date_format_friendly', 'l, F j, Y - g:ia');
+}

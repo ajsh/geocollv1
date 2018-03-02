@@ -1,0 +1,5 @@
+name = Features Lock Report
+description = "Generates a report on overriden features and feature locks"
+package = Features
+dependencies[] = features
+core = 7.x

@@ -1,0 +1,12 @@
+name = luggage_video_solr
+description = integration of solr with video category as a facet
+core = 7.x
+package = Luggage
+version = 7.x-1.0
+project = luggage_video_solr
+dependencies[] = ctools
+dependencies[] = facetapi
+features[ctools][] = facetapi:facetapi_defaults:1
+features[facetapi][] = apachesolr@solr::im_field_video_category
+features[facetapi][] = apachesolr@solr:block:im_field_video_category
+features[features_api][] = api:2

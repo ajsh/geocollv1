@@ -1,0 +1,194 @@
+<?php
+/**
+ * @file
+ * Code for the People feature.
+ */
+
+include_once 'luggage_people.features.inc';
+
+/**
+ * Add a My Public Profile link to toolbar.
+ *
+ * Assumes a content type with machine name 'people'.
+ */
+
+function luggage_people_menu() {
+  $items['my/profile'] = array(
+    'title' => 'My Public Profile',
+    'description' => 'Edit your public profile',
+    'page callback' => 'luggage_people_profile_link',
+    'access arguments' => array('edit own people content'),
+    'weight' => '15',
+    'menu_name' => 'Management',
+  );
+  return $items;
+}
+
+function luggage_people_profile_link() {
+  global $user;
+
+  // Discover the nid of this user's profile.
+  $data = db_query("SELECT COUNT(nid) as ct, nid FROM {node} n WHERE n.type='people' AND n.uid=:uid", array(':uid' => $user->uid))->fetchObject();
+  switch ($data->ct) {
+    case 0:
+      // User does not yet have a profile.
+      drupal_goto('node/add/people');
+      break;
+    case 1:
+      // Normal case: found user's profile. Go there.
+      drupal_goto("node/$data->nid");
+      break;
+    // User has authored more than one. Send to Content.
+    default:
+      drupal_goto('admin/content');
+  }
+}
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_people_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_people']);
+}
+
+// Adds CSS to view display of people node type but not the edit display
+function luggage_people_preprocess_page(&$vars) {
+  // Global node.
+  $node = menu_get_object();
+  if (!empty($node) && $node->type == 'people' || arg(0).arg(1).arg(2) == 'nodeaddpeople') {
+    drupal_add_css(drupal_get_path('module', 'luggage_people') . '/css/luggage_people.css');
+  }
+  if (arg(0) == 'search') {
+    drupal_add_css(drupal_get_path('module', 'luggage_people') . '/css/luggage_people_search.css');
+  }
+}
+
+// Adding support to discover template files
+/**
+ * Implements hook_theme_registry_alter()
+ **/
+function luggage_people_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'luggage_people');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _luggage_people_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _luggage_people_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_shibboleth_post_register()
+ * Called just after successful shibboleth login for the first time.
+ * The shib_auth module does not support this hook.
+ */
+function luggage_people_shibboleth_post_register($record) {
+  global $user;
+  $shibboleth_user = $record['shibboleth_user'];
+  // givenName should always be present
+  if (!isset($record['givenName'])) {
+    watchdog('luggage_people', 'No LDAP info found. Aborting people creation.');
+    return;
+  }
+
+   // Assign role faculty | staff | affiliate | student
+  if ($role = user_role_load_by_name($record['userClass'])) {
+    user_multiple_role_edit(array($user->uid), 'add_role', $role->rid);
+  }
+
+  // Bail out if no node of type 'people' exists.
+  $node_type_names = node_type_get_names();
+  if (!isset($node_type_names['people'])) {
+    return;
+  }
+
+  // Find existing People content that has this user's email attached to it.
+  $query = new EntityFieldQuery();
+  $nids = $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'people')
+    ->fieldCondition('field_people_email', 'email', $record['mail'], '=')
+    ->execute();
+
+  if ($nids) {
+    foreach ($nids['node'] as $node_info) {
+      $node = node_load($node_info->nid);
+      $node->uid = $user->uid;
+      watchdog('luggage_people', 'Assigned ownership of node %nid to %name', array('%nid' => $node->nid, '%name' => $user->name));
+      node_save($node);
+    }
+  }
+  else {
+    // If not found, create new People node using LDAP info.
+    $node = new stdClass();
+    $node->type = 'people';
+    node_object_prepare($node);
+    $node->language = LANGUAGE_NONE;
+
+    // LDAP title is really position, e.g., Systems Analyst III [ENT]
+    // Remove [DEPT] from title, then rename attribute to 'position'
+    // to avoid stomping on $node->title.
+    $pos = strpos($record['title'], '[');
+    $record['position'] = rtrim(drupal_substr($record['title'], 0, $pos));
+    unset($record['title']);
+
+    // Map LDAP record keys to Luggage people node field names.
+    $map = array(
+      'givenName'              => 'first_name',
+      'isuPersonMiddleInitial' => 'middle_initial',
+      'sn'                     => 'last_name',
+      'mail'                   => 'email',
+      'l'                      => 'city',
+      'st'                     => 'state',
+      'postalCode'             => 'postal',
+      'telephoneNumber'        => 'phone',
+      'title'                  => 'position',
+    );
+
+    $node->title = $record['givenName'] . ' ' . $record['sn'];
+    // Image
+    $node->field_people_image[LANGUAGE_NONE][0]['alt'] = 'Profile picture of ' . $node->title;
+    $node->field_people_image[LANGUAGE_NONE][0]['title'] = $node->title;
+
+    // Email field type wants 'email' instead of 'value'.
+    $node->field_people_email[LANGUAGE_NONE][0]['email'] = $record['mail'];
+
+    // Support population of arbitrary fields.
+    // Any LDAP record key will populate into an appropriately-named field.
+    // E.g., create a field with machine name field_people_isupersonloginshell
+    // on the People content type and it will be autopopulated by the value of
+    // the isuPersonLoginShell from LDAP.
+    $prefix = 'field_people_';
+    foreach ($record as $attribute => $value) {
+      $k = $attribute;
+
+      // If there is a map entry, use that instead.
+      // E.g., for $record['st'] assign to $node->field_people_state, not
+      // $node->field_people_st
+      if (isset($map[$k])) {
+       $k = $map[$k];
+      }
+      $fieldname = 'field_people_' . drupal_strtolower($k);
+
+      $node->{$fieldname}[LANGUAGE_NONE][0]['value'] = $value;
+    }
+
+    $node->path['pathauto'] = TRUE;
+
+    watchdog('luggage_people', 'Creating profile for %name', array('%name' => $user->name));
+
+    // Create new People node for this shibboleth user.
+    node_save($node);
+  }
+}

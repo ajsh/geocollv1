@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_biblio_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_biblio')
+    ->execute();
+  db_delete('node_type')
+    ->condition('name', 'Biblio')
+    ->execute();
+  db_insert('node_type')
+    ->fields(array(
+      'type' => 'biblio',
+      'name' => 'Publication',
+      'base' => 'biblio',
+      'module' => 'biblio',
+      'description' => 'Upload or reference your research publications.',
+      'help' => '',
+      'has_title' => '1',
+      'title_label' => 'Title',
+      'custom' => '0',
+      'modified' => '1',
+      'locked' => '1',
+      'disabled' => '0',
+      'orig_type' => 'biblio',
+    ))
+    ->execute();
+}

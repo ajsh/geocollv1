@@ -1,0 +1,99 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_solr feature.
+ */
+
+include_once 'luggage_solr.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_solr_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_solr']);
+}
+
+function luggage_solr_post_features_enable_feature($component) {
+  db_update('apachesolr_search_page')
+    ->fields(array(
+      'search_path' => 'search/content',
+    ))
+    ->condition('page_id', 'core_search')
+    ->execute();
+}
+
+function luggage_solr_post_features_disable_feature($component) {
+  db_update('apachesolr_search_page')
+    ->fields(array(
+      'search_path' => 'search/site',
+    ))
+    ->condition('page_id', 'core_search')
+    ->execute();
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function luggage_solr_block_info() {
+  $blocks = array();
+  $blocks['luggage_solr_search'] = array(
+    'info' => t('Luggage Solr Search'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function luggage_solr_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'luggage_solr_search':
+      $block['subject'] = '';
+      $block['content'] = drupal_get_form('apachesolr_search_custom_page_search_form', NULL, NULL, 'apachesolr_search', NULL);
+      break;
+  }
+
+  return $block;
+}
+
+function luggage_solr_form_apachesolr_search_custom_page_search_form_alter(&$form, &$form_state) {
+  $form['basic']['keys']['#title'] = '';
+  $form['basic']['keys']['#attributes']['placeholder'] = 'Search';
+//  $form['basic']['#attributes']['class'][] = 'solr-search-form';
+}
+
+function luggage_solr_form_search_block_form_alter(&$form, &$form_state) {
+  $form['search_block_form']['#attributes']['placeholder'] = 'Search';
+}
+
+// Drupal URL aliases cannot hold query strings; they are paths only.
+// Pathauto is doing its best to create an alias from a term and its vocabulary
+// like tags/cheese -> taxonomy/term/1234. However, when it asks entity path
+// for the uri_path of taxonomy entities, it gets the answer 'search/content'
+// along with more options in the query string. Sadly, since the query string
+// cannot be stored, pathauto ignores it and creates a URL alias like
+// tags/cheese -> search/content which is not helpful as search/content is
+// a null Apache Solr search. However, pathauto is nice enough to run a
+// drupal_alter() in pathauto_create_alias() (see pathauto.inc) which allows us
+// to restore sanity by replacing search/content with the traditional
+// taxonomy/term/1234 path. Globalredirect will do the right thing when
+// a request for taxonomy/term/1234 comes in and the user will land on
+// a Solr search with the correct term selected as a facet.
+function luggage_solr_pathauto_alias_alter($alias, $context) {
+  if (($context['module'] == 'taxonomy_term') && ($context['source'] == 'search/content')) {
+    // If $data['term'] is set instead of $data['taxonomy_term'] 
+    // pathauto_taxonomy_term_update_alias() is responsible.
+    // Work around that bug here.
+    if (isset($context['data']['term'])) {
+      $context['source'] = 'taxonomy/term/' . $context['data']['term']->tid;
+    }
+    // Canonical context data name is taxonomy_term.
+    if (isset($context['data']['taxonomy_term'])) {
+      $context['source'] = 'taxonomy/term/' . $context['data']['taxonomy_term']->tid;
+    }
+  }
+}

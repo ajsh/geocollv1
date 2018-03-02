@@ -1,0 +1,11 @@
+name = luggage_isubit_solr
+description = ISUBIT specific solr configuration
+core = 7.x
+package = Luggage
+version = 7.x-2.0
+project = luggage_isubit_solr
+dependencies[] = ctools
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[variable][] = apachesolr_default_environment

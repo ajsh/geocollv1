@@ -1,0 +1,93 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_roles feature.
+ */
+
+include_once 'luggage_roles.features.inc';
+
+/**
+ * Implements hook_menu().
+ *
+ * Adds Broken Links menu item to toolbar.
+ */
+function luggage_roles_menu() {
+  $items['admin/linkchecker'] = array(
+    'access arguments' => array('access broken links report'),
+    'description' => 'Shows a list of broken links in content.',
+    'file' => 'linkchecker.pages.inc',
+    'file path' => drupal_get_path('module', 'linkchecker'),
+    'page callback' => 'linkchecker_admin_report_page',
+    'title' => 'Broken links',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['http://www.biology-it.iastate.edu/luggage_doc/guide'] = array(
+    'title' => t('Tutorials'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 50,
+    'access arguments' => array('access administration menu'),
+    'menu_name' => 'management',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_roles_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_roles']);
+}
+
+// Adding support to discover template files
+/**
+ * Implements hook_theme_registry_alter()
+ **/
+function luggage_roles_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'luggage_roles');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _luggage_roles_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _luggage_roles_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+function luggage_roles_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+
+  if($user->uid != '1') {
+    unset($form['revision_information']);
+  }
+}
+
+/**
+ *  Implements hook_field_widget_form_alter()
+ */
+function luggage_roles_field_widget_form_alter(&$element, &$form_state, $context) {
+  // Update the label on image fields that take more than one value from "Add a new file" to "Add a new image"
+  if($context['instance']['widget']['module'] == "image" && ($context['field']['cardinality'] > 1 || $context['field']['cardinality'] == -1)) {
+    $element['#file_upload_title'] = "Add a new image";
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK()
+ * Working around debugging informaiton added by Drupal 7.33
+ * https://www.drupal.org/node/2385835
+ */
+function luggage_roles_preprocess_ds_search_page(&$vars) {
+  unset($vars['theme_hook_original']);
+}

@@ -1,0 +1,43 @@
+.turtle-data-entry-form {
+  margin-bottom: 1rem;
+}
+
+.turtle-data-entry-form .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+@media (max-width: 740px) {
+  .turtle-data-entry-form .form-row {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.turtle-data-entry-form .form-row .pane {
+  flex-grow: 1;
+  flex-shrink: 1;
+  float: none;
+  margin: 0 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+}
+
+.turtle-data-entry-form .form-row .pane.grid-full {
+  flex-basis: auto;
+  margin-bottom: 1rem;
+}
+
+.turtle-data-entry-form .form-row .pane.grid-3 {
+  flex-basis: 250px;
+  min-width: 250px;
+}
+
+.turtle-data-entry-form .scutes-value {
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 1rem;
+}

@@ -1,0 +1,812 @@
+<?php
+
+/**
+ * @file
+ * Module file for Turtlebase site-specific module.
+ */
+
+require_once 'turtlebase.classes.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function turtlebase_menu() {
+  $items = array();
+  $items['turtle-data-entry'] = array(
+    'title' => 'Turtle Data Entry Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('turtle_data_entry_form'),
+    'access arguments' => array('create individual content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['turtle-data-entry/%turtle_data_entry_observation'] = array(
+    'title' => 'Turtle Data Entry Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('turtle_data_entry_form', 1),
+    'access arguments' => array('create individual content'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function turtlebase_theme($existing, $type, $theme, $path) {
+  return array(
+    'turtle_figure' => array(
+      'variables'  => array(
+        'class' => '',
+      ),
+      'template' => 'turtle-figure',
+      'path' => drupal_get_path('module', 'turtlebase') . '/templates',
+    ),
+    'turtle_data_entry_form' => array(
+      'render element'  => 'form',
+      'template' => 'turtle-data-entry-form',
+      'path' => drupal_get_path('module', 'turtlebase') . '/templates',
+    ),
+    'turtle_data_entry_form_eggs_table' => array(
+      'render element' => 'element',
+    ),
+    'views_view__observations__page' => array(
+      'variables' => array('view_array' => array(), 'view' => NULL),
+      'template' => 'views-view--observations--page',
+      'base hook' => 'views_view',
+      'path' => drupal_get_path('module', 'turtlebase') . '/templates',
+    ),
+  );
+}
+
+/**
+ * Implements theme_preprocess_html().
+ */
+function turtlebase_preprocess_html(&$variables) {
+  drupal_add_css(drupal_get_path('module', 'turtlebase') . '/css/big-data.css');
+  drupal_add_js(drupal_get_path('module', 'turtlebase') . '/js/big-data.js');
+}
+
+/**
+ * Implements theme_preprocess_node().
+ */
+function turtlebase_preprocess_node(&$variables) {
+
+  $node = $variables['node'];
+
+  if (!($node->type == 'static' && $variables['view_mode'] == 'full')) {
+    return;
+  }
+
+  drupal_add_css(drupal_get_path('module', 'turtlebase') . '/css/turtle-figure.css');
+  drupal_add_js(drupal_get_path('module', 'turtlebase') . '/js/turtle-figure.js');
+
+  $variables['content']['turtle_figure'] = array(
+    '#markup' => theme('turtle_figure', array('class' => 'noclick')),
+  );
+
+  $marked_scutes = array();
+
+  foreach ($node as $key => $value) {
+    if (preg_match('/field_static_(?P<side>left|right)_scute_(?P<number>\d+)/', $key, $matches)) {
+      if ($node->{$key}[LANGUAGE_NONE][0]['value'] == 1) {
+        $marked_scutes[$matches['side']][$matches['number']] = TRUE;
+      }
+    }
+  }
+
+  drupal_add_js(array('turtlebase' => array('scutes' => $marked_scutes)), 'setting');
+
+}
+
+function turtlebase_preprocess_views_view(&$variables) {
+
+  $view = $variables['view'];
+
+  if ($view->name === 'observations' && $view->display_handler->plugin_name === 'page') {
+
+    drupal_add_css(drupal_get_path('module', 'turtlebase') . '/css/turtle-figure.css');
+    drupal_add_js(drupal_get_path('module', 'turtlebase') . '/js/turtle-figure.js');
+    drupal_add_js(drupal_get_path('module', 'turtlebase') . '/js/observations-page.js');
+
+    $variables['turtle_figure'] = theme('turtle_figure');
+
+  }
+
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function turtlebase_form_static_node_form_alter(&$form, &$form_state, $form_id) {
+  $form['#attached']['css'][] = drupal_get_path('module', 'turtlebase') . '/css/turtle-figure.css';
+  $form['#attached']['js'][] = drupal_get_path('module', 'turtlebase') . '/js/turtle-figure.js';
+  $form['#attached']['js'][] = drupal_get_path('module', 'turtlebase') . '/js/static-node-form.js';
+  $form['scutes'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Scutes'),
+    '#weight' => 10,
+  );
+  $form['scutes']['turtle_figure'] = array(
+    '#markup' => theme('turtle_figure'),
+  );
+  foreach (element_children($form) as $key) {
+    if (strpos($key, 'field_') === 0 && strpos($key, 'scute') !== FALSE) {
+      $form['scutes'][$key] = $form[$key];
+      unset($form[$key]);
+    }
+  }
+
+}
+
+/**
+ * Looks up observation node based on serial ID field value
+ */
+function turtle_data_entry_observation_load($observation_id) {
+  $query = new TurtleDataEntityFieldQuery();
+  $query->entityCondition('bundle', 'observation');
+  $query->fieldCondition('field_observation_observation_id', 'value', $observation_id, '=');
+  $results = $query->execute();
+  if (!empty($results['node'])) {
+    return node_load(key($results['node']));
+  } else {
+    return FALSE;
+  }
+}
+
+/**
+ * Form that mimics the data entry sheet and creates appropriate nodes.
+ */
+function turtle_data_entry_form($form, &$form_state, $observation = NULL) {
+
+  drupal_set_title(t('Turtle Data Entry Form'));
+
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'turtlebase') . '/css/turtle-figure.css',
+    drupal_get_path('module', 'turtlebase') . '/css/turtle-data-entry-form.css',
+  );
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'turtlebase') . '/js/turtle-figure.js',
+    drupal_get_path('module', 'turtlebase') . '/js/turtle-data-entry-form.js',
+  );
+
+  $existing = isset($observation->nid);
+
+  if ($existing) {
+    // We're editing existing data
+    $form_state['observation'] = new Observation($observation);
+    $dynamic = _turtle_data_entry_entity_reference_relationship('field_dynamic_observation_id', $form_state['observation']->nid);
+    if ($dynamic !== NULL) {
+      $form_state['dynamic'] = new DynamicCharacteristic($dynamic);
+      $form_state['static'] = new StaticCharacteristic(_turtle_data_entry_entity_reference_relationship('field_static_individual_id', $form_state['dynamic']->field_dynamic_individual_id[LANGUAGE_NONE][0]['target_id']));
+    }
+    $nobs = _turtle_data_entry_entity_reference_relationship('field_nobs_observation_id', $form_state['observation']->nid);
+    if ($nobs !== NULL) {
+      $form_state['nobs'] = new NestObservation($nobs);
+      $form_state['nest'] = new Nest(node_load($form_state['nobs']->field_nobs_nest_id[LANGUAGE_NONE][0]['target_id']));
+      $raw_eggs = _turtle_data_entry_entity_reference_relationship('field_egg_nest_observation_id', $form_state['nobs']->nid, TRUE);
+      if (!isset($form_state['num_eggs'])) {
+        $form_state['num_eggs'] = count($raw_eggs);
+      }
+      $form_state['eggs'] = array_map('Egg::factory', array_pad($raw_eggs, $form_state['num_eggs'], NULL));
+    }
+  }
+  else {
+    // We're submitting new data
+    $form_state['observation'] = new Observation((isset($form_state['values']['observation']) ? $form_state['values']['observation'] : array()));
+    $form_state['dynamic'] = new DynamicCharacteristic((isset($form_state['values']['dynamic']) ? $form_state['values']['dynamic'] : array()));
+    $form_state['static'] = new StaticCharacteristic((isset($form_state['values']['static']) ? $form_state['values']['static'] : array()));
+    $form_state['nobs'] = new NestObservation((isset($form_state['values']['nobs']) ? $form_state['values']['nobs'] : array()));
+    $form_state['nest'] = new Nest((isset($form_state['values']['nest']) ? $form_state['values']['nest'] : array()));
+    $raw_eggs = (isset($form_state['values']['eggs']) ?  array_diff_key($form_state['values']['eggs'], array('actions' => NULL)) : array());
+    if (!isset($form_state['num_eggs'])) {
+      $form_state['num_eggs'] = 0;
+    }
+    $form_state['eggs'] = array_map('Egg::factory', array_pad($raw_eggs, $form_state['num_eggs'], NULL));
+  }
+
+  // OBSERVATION
+
+  _turtle_data_entry_form_add_bundle($form, $form_state, array('observation'), array('field_observation_date', 'field_observation_time_unknown'));
+  $form['observation']['field_observation_date'][LANGUAGE_NONE][0]['#title'] = '';
+  $form['observation']['field_observation_date'][LANGUAGE_NONE][0]['#description'] = '';
+
+  if ($existing) {
+    $form['observation']['field_observation_time_unknown'][LANGUAGE_NONE]['#disabled'] = TRUE;
+    $form['observation']['field_observation_date'][LANGUAGE_NONE][0]['#disabled'] = TRUE;
+  }
+
+  if (isset($form_state['dynamic'])) {
+
+    // DYNAMIC
+
+    _turtle_data_entry_form_add_bundle($form, $form_state, array('dynamic'));
+    unset($form['dynamic']['field_dynamic_individual_id']);
+    unset($form['dynamic']['field_dynamic_observation_id']);
+
+    foreach (element_children($form['dynamic']) as $key) {
+      if (strpos($key, 'field_') === 0) {
+        $form['dynamic'][$key]['#states'] = array(
+          'disabled' => array(
+            ':input[name="static[field_static_sex][' . LANGUAGE_NONE . ']"]' => array('value' => FALSE),
+          ),
+        );
+      }
+    }
+
+    // STATIC
+
+    _turtle_data_entry_form_add_bundle($form, $form_state, array('static'));
+
+    $form['static']['scutes'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Scutes'),
+      '#id' => 'edit-scutes',
+      '#parents' => array('static'),
+      '#weight' => 10,
+    );
+
+    $turtle_figure_class = $existing ? 'noclick' : '';
+
+    $form['static']['scutes']['turtle_figure'] = array(
+      '#markup' => theme('turtle_figure', array('class' => $turtle_figure_class)),
+    );
+
+    foreach (element_children($form['static']) as $key) {
+      if (strpos($key, 'field_') === 0) {
+        if (strpos($key, 'scute') !== FALSE) {
+          $form['static']['scutes'][$key] = $form['static'][$key];
+          unset($form['static'][$key]);
+        }
+        elseif ($key !== 'field_static_sex' && $key !== 'field_static_id_starts_with_four') {
+          unset($form['static'][$key]);
+        }
+        if ($existing) {
+          $form['static'][$key]['#disabled'] = TRUE;
+        }
+      }
+    }
+
+    unset($form['static']['field_static_sex'][LANGUAGE_NONE]['#options']['_none']);
+
+  }
+
+  if (isset($form_state['nobs'])) {
+
+    // NEST OBSERVATION
+
+    _turtle_data_entry_form_add_bundle($form, $form_state, array('nobs'));
+    unset($form['nobs']['field_nobs_observation_id']);
+    unset($form['nobs']['field_nobs_nest_id']);
+
+    foreach (element_children($form['nobs']) as $key) {
+      if (strpos($key, 'field_') === 0) {
+        $form['nobs'][$key]['#states'] = array(
+          'disabled' => array(
+            ':input[name="nest[field_nest_legacy_nest_id][' . LANGUAGE_NONE . '][0][value]"]' => array('empty' => TRUE),
+          ),
+        );
+      }
+    }
+
+    // NEST
+
+    _turtle_data_entry_form_add_bundle($form, $form_state, array('nest'), array('field_nest_legacy_nest_id'));
+
+    if ($existing) {
+      $form['nest']['field_nest_legacy_nest_id']['#disabled'] = TRUE;
+    }
+
+    // EGGS
+
+    $form['eggs'] = array(
+      '#tree' => TRUE,
+      '#parents' => array('eggs'),
+      '#prefix' => '<div id="eggs-wrapper">',
+      '#suffix' => '</div>',
+      '#theme' => 'turtle_data_entry_form_eggs_table',
+      '#title' => t('Eggs'),
+    );
+
+    for ($i = 0; $i < $form_state['num_eggs']; $i++) {
+      _turtle_data_entry_form_add_bundle($form, $form_state, array('eggs', $i), array('field_egg_weight', 'field_egg_comment'));
+    }
+
+    $form['eggs']['actions'] = array(
+      '#type' => 'actions',
+    );
+
+    $form['eggs']['actions']['add_egg'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add one egg'),
+      '#submit' => array('turtle_data_entry_form_eggs_add_one'),
+      '#ajax' => array(
+        'callback' => 'turtle_data_entry_form_eggs_callback',
+        'wrapper' => 'eggs-wrapper',
+        'effect' => 'fade',
+      ),
+      '#limit_validation_errors' => array(array('eggs')),
+    );
+
+    if ($form_state['num_eggs'] > 0) {
+      $form['eggs']['actions']['remove_egg'] = array(
+        '#type' => 'submit',
+        '#value' => t('Remove one egg'),
+        '#submit' => array('turtle_data_entry_form_eggs_remove_one'),
+        '#ajax' => array(
+          'callback' => 'turtle_data_entry_form_eggs_callback',
+          'wrapper' => 'eggs-wrapper',
+          'effect' => 'fade',
+        ),
+        '#limit_validation_errors' => array(array('eggs')),
+      );
+    }
+
+  }
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#name' => 'Submit',
+    '#submit' => array('turtle_data_entry_form_submit'),
+  );
+
+  $form['#validate'] = array('turtle_data_entry_form_validate');
+  $form['#submit'] = array();
+
+  if ($existing) {
+
+    // Date module sucks and disabled date form elements fail validation
+    // https://www.drupal.org/node/1349510
+    // https://www.drupal.org/node/1387890
+    // https://www.drupal.org/node/1970640
+    foreach (element_children($form) as $key) {
+      if (!in_array($key, array('static', 'observation', 'nest', 'actions'))) {
+        $form['actions']['submit']['#limit_validation_errors'][] = array($key);
+      }
+    }
+
+    $form['actions']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#name' => 'Delete',
+      '#submit' => array('turtle_data_entry_form_delete'),
+      '#limit_validation_errors' => array(),
+    );
+
+  }
+
+  return $form;
+
+}
+
+/**
+ * Validate handler for turtlebase_data_entry_form().
+ */
+function turtle_data_entry_form_validate($form, &$form_state) {
+
+  // $form_state contains the actual entities being edited, but we must
+  // not update it with form values that have not yet been validated, so we
+  // create pseudo-entities to use during validation.
+
+  // OBSERVATION
+
+  $observation = new Observation($form_state['values']['observation']);
+  field_attach_form_validate('node', $observation, $form['observation'], $form_state);
+
+  if (isset($form_state['dynamic'])) {
+
+    // DYNAMIC
+
+    $dynamic = new DynamicCharacteristic($form_state['values']['dynamic']);
+    field_attach_form_validate('node', $dynamic, $form['dynamic'], $form_state);
+
+    // STATIC
+
+    $static = new StaticCharacteristic($form_state['values']['static']);
+    field_attach_form_validate('node', $static, $form['static'], $form_state);
+
+  }
+
+  if (isset($form_state['nobs'])) {
+
+    // NEST OBSERVATION
+
+    $nobs = new NestObservation($form_state['values']['nobs']);
+    field_attach_form_validate('node', $nobs, $form['nobs'], $form_state);
+
+    // NEST
+
+    $nest = new Nest($form_state['values']['nest']);
+    field_attach_form_validate('node', $nest, $form['nest'], $form_state);
+
+    // EGGS
+
+    for ($key = 0; $key < $form_state['num_eggs']; $key++) {
+      $egg = new Egg($form_state['values']['eggs'][$key]);
+      field_attach_form_validate('node', $egg, $form['eggs'][$key], $form_state);
+    }
+
+  }
+
+}
+
+/**
+ * Submit handler for turtlebase_data_entry_form().
+ */
+function turtle_data_entry_form_submit($form, &$form_state) {
+
+  $transaction = db_transaction();
+
+  try {
+
+    // OBSERVATION
+
+    $observation = $form_state['observation'];
+
+    $new = !isset($observation->nid);
+
+    if ($new) {
+      field_attach_submit('node', $observation, $form['observation'], $form_state);
+      $observation->save();
+    }
+
+    if (isset($form_state['dynamic'])) {
+
+      // STATIC + INDIVIDUAL
+
+      $static = $form_state['static'];
+
+      if ($new) {
+
+        field_attach_submit('node', $static, $form['static'], $form_state);
+
+        $computed_id = StaticCharacteristic::compute_id($static);
+
+        if (preg_match('/^[0-9][0]+$/', $computed_id) !== 1) {
+
+          $query = new TurtleDataEntityFieldQuery();
+          $query->entityCondition('bundle', 'static');
+          $query->fieldCondition('field_static_computed_id', 'value', $computed_id, '=');
+
+          $results = $query->execute();
+
+          if (!empty($results['node'])) {
+            $static = new StaticCharacteristic(node_load(key($results['node'])));
+          }
+          else {
+
+            $individual = new Individual();
+            $individual->save();
+
+            $static->field_static_individual_id[LANGUAGE_NONE][0]['target_id'] = $individual->nid;
+            $static->save();
+
+          }
+
+        }
+
+      }
+
+      if (isset($static->nid)) {
+
+        $individual = new Individual(node_load($static->field_static_individual_id[LANGUAGE_NONE][0]['target_id']));
+
+        // DYNAMIC
+
+        $dynamic = $form_state['dynamic'];
+        field_attach_submit('node', $dynamic, $form['dynamic'], $form_state);
+        $dynamic->field_dynamic_individual_id[LANGUAGE_NONE][0]['target_id'] = $individual->nid;
+        $dynamic->field_dynamic_observation_id[LANGUAGE_NONE][0]['target_id'] = $observation->nid;
+        $dynamic->save();
+
+      }
+
+    }
+
+    if (isset($form_state['nobs'])) {
+
+      // NEST
+
+      $nest = $form_state['nest'];
+
+      if ($new) {
+
+        field_attach_submit('node', $nest, $form['nest'], $form_state);
+
+        if (!empty($nest->field_nest_legacy_nest_id[LANGUAGE_NONE][0]['value'])) {
+
+          $nest->field_nest_year[LANGUAGE_NONE][0]['value'] = explode('-', $observation->field_observation_date[LANGUAGE_NONE][0]['value'])[0] . '-01-01 00:00:00';
+
+          $query = new TurtleDataEntityFieldQuery();
+          $query->entityCondition('bundle', 'nest');
+          $query->fieldCondition('field_nest_legacy_nest_id', 'value', $nest->field_nest_legacy_nest_id[LANGUAGE_NONE][0]['value'], '=');
+          $query->fieldCondition('field_nest_year', 'value', $nest->field_nest_year[LANGUAGE_NONE][0]['value'], '=');
+          $results = $query->execute();
+
+          if (!empty($results['node'])) {
+            // use the existing nest
+            $nest = new Nest(node_load(key($results['node'])));
+          }
+          else {
+            // Create a new nest
+            $nest->save();
+          }
+
+        }
+
+      }
+
+      if (isset($nest->nid)) {
+
+        // NEST OBSERVATION
+        $nobs = $form_state['nobs'];
+        field_attach_submit('node', $nobs, $form['nobs'], $form_state);
+        $nobs->field_nobs_observation_id[LANGUAGE_NONE][0]['target_id'] = $observation->nid;
+        $nobs->field_nobs_nest_id[LANGUAGE_NONE][0]['target_id'] = $nest->nid;
+        $nobs->save();
+
+        // EGGS
+
+        $eggs = $form_state['eggs'];
+
+        for ($key = 0; $key < $form_state['num_eggs']; $key++) {
+          $egg = $eggs[$key];
+          field_attach_submit('node', $egg, $form['eggs'][$key], $form_state);
+          if (empty($egg->field_egg_weight[LANGUAGE_NONE]) && empty($egg->field_egg_comment[LANGUAGE_NONE])) {
+            continue;
+          }
+          unset($eggs[$key]);
+          $egg->field_egg_nest_observation_id[LANGUAGE_NONE][0]['target_id'] = $nobs->nid;
+          $egg->save();
+        }
+
+        // Delete any eggs that were empty or removed
+        foreach ($eggs as $key => $egg) {
+          unset($form_state['eggs'][$key]);
+          if (isset($egg->nid)) {
+            node_delete($egg->nid);
+          }
+        }
+
+      }
+
+    }
+
+    if (!empty($form_state['dynamic']->nid)) {
+      drupal_set_message('Turtle data saved successfully. If you want to edit the data, ' . l('click here', 'turtle-data-entry/' . $observation->field_observation_observation_id[LANGUAGE_NONE][0]['value']) . '.');
+    }
+
+    if (!empty($form_state['nobs']->nid)) {
+      drupal_set_message('Nest data saved successfully. If you want to edit the data, ' . l('click here', 'turtle-data-entry/' . $observation->field_observation_observation_id[LANGUAGE_NONE][0]['value']) . '.');
+    }
+
+    if (empty($form_state['dynamic']->nid) && empty($form_state['nobs']->nid)) {
+      throw new TurtleDataEntryException('Nothing was saved. Please ensure you filled out the required fields for either a turtle or nest observation.');
+    }
+
+  } catch (Exception $e) {
+    $transaction->rollback();
+    $form_state['rebuild'] = TRUE;
+    watchdog_exception('turtlebase', $e);
+    drupal_set_message('Error: ' . $e->getMessage(), 'error');
+  }
+
+}
+
+/**
+ * Delete button submit handler for turtlebase_data_entry_form().
+ */
+function turtle_data_entry_form_delete($form, &$form_state) {
+
+  $delete_me = array();
+
+  $delete_me[] = $form_state['observation']->nid;
+  $delete_me[] = $form_state['dynamic']->nid;
+
+  if (isset($form_state['nobs'])) {
+
+    $delete_me[] = $form_state['nobs']->nid;
+
+    $nest_query = new TurtleDataEntityFieldQuery();
+    $nest_query->entityCondition('bundle', 'nobs');
+    $nest_query->propertyCondition('nid', $form_state['nobs']->nid, '!=');
+    $nest_query->fieldCondition('field_nobs_nest_id', 'target_id', $form_state['nobs']->field_nobs_nest_id[LANGUAGE_NONE][0]['target_id'], '=');
+    $nest_results = $nest_query->execute();
+
+    if (empty($nest_results['node'])) {
+      $delete_me[] = $form_state['nobs']->field_nobs_nest_id[LANGUAGE_NONE][0]['target_id'];
+    }
+
+    foreach ($form_state['eggs'] as $key => $egg) {
+      if (isset($egg->nid)) {
+        $delete_me[] = $egg->nid;
+      }
+    }
+
+  }
+
+  node_delete_multiple($delete_me);
+  cache_clear_all();
+
+  watchdog('turtlebase', 'Observation %observation and associated entities deleted.', array('%observation' => $form_state['observation']->field_observation_observation_id[LANGUAGE_NONE][0]['value']));
+  drupal_set_message(t('Observation %observation has been deleted.', array('%observation' => $form_state['observation']->field_observation_observation_id[LANGUAGE_NONE][0]['value'])));
+
+  $form_state['redirect'] = '<front>';
+
+}
+
+/**
+ * Callback for both ajax-enabled buttons.
+ *
+ * Selects and returns the fieldset with the names in it.
+ */
+function turtle_data_entry_form_eggs_callback($form, $form_state) {
+  $result = array(
+    '#type' => 'ajax',
+    '#commands' => ajax_prepare_response($form['eggs']),
+  );
+  $result['#commands'][] = ajax_command_invoke('.field-name-field-egg-weight input:last', 'trigger', array('focus'));
+  return $result;
+}
+
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ */
+function turtle_data_entry_form_eggs_add_one($form, &$form_state) {
+  $form_state['num_eggs']++;
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Submit handler for the "remove one" button.
+ *
+ * Decrements the max counter and causes a form rebuild.
+ */
+function turtle_data_entry_form_eggs_remove_one($form, &$form_state) {
+  if ($form_state['num_eggs'] > 0) {
+    $form_state['num_eggs']--;
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Theme function for eggs field
+ */
+function theme_turtle_data_entry_form_eggs_table($variables) {
+
+  $element = $variables['element'];
+
+  $header = array(
+    'egg_num' => 'Egg #',
+  );
+
+  $rows = array();
+
+  foreach (element_children($element) as $key) {
+    if ($key === 'actions') {
+      $actions = &$element[$key];
+    } else {
+      $cols = array('egg_num' => $key + 1);
+      foreach (element_children($element[$key]) as $field_name) {
+        if (!isset($header[$field_name])) {
+          $header[$field_name] = $element[$key][$field_name][LANGUAGE_NONE][0]['value']['#title'];
+        }
+        $element[$key][$field_name][LANGUAGE_NONE][0]['value']['#title'] = '';
+        $element[$key][$field_name][LANGUAGE_NONE][0]['value']['#description'] = '';
+        $cols[$field_name] = array('data' => drupal_render($element[$key][$field_name]), 'class' => array(drupal_html_class($field_name)));
+      }
+      $rows[] = $cols;
+    }
+  }
+
+  $output = drupal_render($actions);
+
+  if (!empty($rows)) {
+    $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'eggs-table'), 'sticky' => FALSE)) . $output;
+  }
+
+  return $output;
+
+}
+
+/**
+ * Looks up nodes that reference an observation
+ */
+function _turtle_data_entry_entity_reference_relationship($field_name, $field_value, $return_all = FALSE) {
+  $query = new TurtleDataEntityFieldQuery();
+  $query->fieldCondition($field_name, 'target_id', $field_value, '=');
+  $results = $query->execute();
+  if ($return_all) {
+    if (!empty($results['node'])) {
+      return array_values(node_load_multiple(array_keys($results['node'])));
+    } else {
+      return array();
+    }
+  } else {
+    if (!empty($results['node'])) {
+      return node_load(key($results['node']));
+    } else {
+      return NULL;
+    }
+  }
+}
+
+/**
+ * Creates form elements for an entity
+ */
+function _turtle_data_entry_form_add_bundle(&$form, &$form_state, $parents, $fields = array()) {
+
+  drupal_array_set_nested_value($form, $parents, array(
+    '#tree' => TRUE,
+    '#parents' => $parents,
+  ));
+
+  $form_element = &drupal_array_get_nested_value($form, $parents);
+
+  field_attach_form('node', drupal_array_get_nested_value($form_state, $parents), $form_element, $form_state);
+
+  if (!empty($fields)) {
+    foreach (element_children($form_element) as $key) {
+      if (strpos($key, 'field_') === 0 && !in_array($key, $fields)) {
+        unset($form_element[$key]);
+      }
+    }
+  }
+
+}
+
+function computed_field_field_static_computed_id_compute(&$entity_field, $entity_type, $entity, $field, $instance, $langcode, $items) {
+  $entity_field[0]['value'] = StaticCharacteristic::compute_id($entity);
+}
+
+function computed_field_field_static_computed_id_display($field, $entity_field_item, $entity_lang, $langcode, $entity) {
+  return $entity_field_item['value'];
+}
+
+function _turtlebase_select_query($table = 'node', $alias = 'n') {
+  $query = db_select($table, $alias);
+  if ($table == 'node') {
+    $query->condition('n.status', 1, '=');
+    $query->orderBy('n.nid', 'ASC');
+  }
+  $query->addTag('DANGEROUS_ACCESS_CHECK_OPT_OUT');
+  return $query;
+}
+
+function computed_field_field_dynamic_recapture_compute(&$entity_field, $entity_type, $entity, $field, $instance, $langcode, $items) {
+
+  $date_query = _turtlebase_select_query('field_data_field_observation_date', 'fdfod');
+  $date_query->fields('fdfod', array('field_observation_date_value'));
+  $date_query->condition('fdfod.entity_type', 'node');
+  $date_query->condition('fdfod.bundle', 'observation');
+  $date_query->condition('fdfod.entity_id', $entity->field_dynamic_observation_id[LANGUAGE_NONE][0]['target_id'], '=');
+  $observation_date = $date_query->execute()->fetchField();
+
+  $query = _turtlebase_select_query();
+  $query->condition('n.type', 'dynamic');
+  $query->innerJoin('field_data_field_dynamic_individual_id', 'fdfdii', 'n.nid = fdfdii.entity_id');
+  $query->innerJoin('field_data_field_dynamic_observation_id', 'fdfoi', 'n.nid = fdfoi.entity_id');
+  $query->innerJoin('field_data_field_observation_date', 'fdfod', 'fdfoi.field_dynamic_observation_id_target_id = fdfod.entity_id');
+  $query->condition('fdfdii.field_dynamic_individual_id_target_id', $entity->field_dynamic_individual_id[LANGUAGE_NONE][0]['target_id'], '=');
+  $query->condition('fdfod.field_observation_date_value', $observation_date, '<');
+  $real_query = $query->countQuery();
+
+  $result = $real_query->execute()->fetchField();
+
+  if ($result > 0) {
+    $entity_field[0]['value'] = 1;
+  } else {
+    $entity_field[0]['value'] = 0;
+  }
+
+}
+
+function computed_field_field_dynamic_recapture_display($field, $entity_field_item, $entity_lang, $langcode, $entity) {
+  return $entity_field_item['value'];
+}

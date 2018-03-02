@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_vars feature.
+ */
+
+include_once 'luggage_vars.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_vars_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_vars']);
+}

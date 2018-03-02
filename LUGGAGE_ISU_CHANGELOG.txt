@@ -1,0 +1,207 @@
+How to read this changelog:
+
+The LUGG- prefix refers to JIRA issue numbers; the # prefix refers to GitHub issue numbers.
+
+The Luggage_ISU version number shows the upstream Luggage version it is based on
+as well as the Luggage_ISU version. For example, Luggage_ISU 3.5.0-5.0 is based
+on the upstream Luggage release 3.5.0.
+
+Luggage_ISU 3.5.3-5.3, 2017-10-03
+Drupal 7.56, 2016-06-21
+-------------------------
+Merged with upstream Luggage 3.5.3
+suitcase_interim 1.1.4 theme
+suitcase 2.5 theme
+- LUGG-899 - Deleting a role now removes it from assignable roles
+- INTERIM-136 - suitcase_interim_frontpanel now enforces panels requirement
+
+Luggage_ISU 3.5.2-5.2, 2017-06-21
+Drupal 7.56, 2017-06-21
+-------------------------
+- LUGG-1000 - Drupal 7.56 SA-CORE-2017-003
+
+Luggage_ISU 3.5.1-5.1, 2016-03-22
+Drupal 7.54, 2016-02-01
+-------------------------
+Merged with upstream Luggage 3.5.1
+suitcase_interim 1.0.5 theme
+suitcase 2.4 theme
+- LUGG-951 - Fixed issue where 5 digit zip code added an extra - at the end
+
+Luggage_ISU 3.5.0-5.0, 2016-02-08
+Drupal 7.54, 2016-02-01
+-------------------------
+Merged with upstream Luggage 3.5.0
+- #2 - Show blocked status on "Change who may access this site"
+- LUGG-344 - Added basic print styling (Suitcase Classic)
+- LUGG-621 - Improved panels vertical spacing
+- LUGG-678 - Improved panels theming (Suitcase Classic)
+- LUGG-844 - Fixed improper bold link styling (Suitcase Classic)
+- LUGG-854 - Added styles for fieldsets (Suitcase Classic)
+- LUGG-866 - Added panels layout with two rows
+- LUGG-621 - Added some default styles to frontpanel
+- LUGG-839 - Improved suitcase_config uninstall to remove variables
+- LUGG-937 - Added suitcase_interim 1.0.4 theme and made it default on initial build
+
+Luggage_ISU 3.4.2-4.7, 2016-11-16
+Drupal 7.52, 2016-11-16
+-------------------------
+- LUGG-879 - Drupal 7.52 SA-CORE-2016-005
+
+Luggage_ISU 3.4.1-4.6, 2016-08-19
+Drupal 7.50, 2016-07-07
+-------------------------
+Merged with upstream Luggage 3.4.1
+- LUGG-738 - Update to remove pubcookie, pubcookiesiteaccess, and luggage_pubcookie from the system table.
+
+Luggage_ISU 3.4.0-4.5, 2016-06-22
+Drupal 7.44, 2016-06-15
+-------------------------
+Merged with upstream Luggage 3.4.0
+- LUGG-509 - Styling added to <figure> and <figcaption>
+- LUGG-519 - Images in content resize for mobile content
+- LUGG-525 - Moved suitcase styling from luggage_people to suitcase
+- LUGG-609 - Styling added to new comment marker
+- LUGG-631 - Opening a link in a new tab with iOS now works
+- LUGG-722 - isushib no longer caches failed log in attempts
+
+Luggage_ISU 3.3.2-4.4, 2016-06-15
+Drupal 7.44, 2016-06-15
+-------------------------
+- LUGG-731 - Drupal 7.44 SA-CORE-2016-002
+
+Luggage_ISU 3.3.1-4.3, 2016-02-24
+Drupal 7.43, 2016-02-24
+-------------------------
+- LUGG-642 - Drupal 7.43 SA-CORE-2016-001
+
+Luggage_ISU 3.3.0-4.2, 2016-01-15
+Drupal 7.41, 2015-10-21
+-------------------------
+- LUGG-555 - Fixed numbered bulleted list only showing 1 digit
+- LUGG-613 - Update references of ISUITC to ISUBIT
+- LUGG-625/isushib #5 - Updated shibboleth documentation URL
+
+Luggage_ISU 3.2.5-4.1, 2015-10-21
+Drupal 7.41, 2015-10-21
+-------------------------
+- LUGG-604 - Drupal 7.41 SA-CORE-2015-004
+
+Luggage_ISU 3.2.4-4.0, 2015-10-08
+Drupal 7.39, 2015-08-19
+-------------------------
+Merged with upstream Luggage 3.2.4
+- LUGG-360 - Added the ability to customize some theme colors in Suitcase
+- LUGG-366 - Added the ability to add a custom logo to the Suitcase header
+- LUGG-370 - Added the ability to remove the ISU black bar from the Suitcase header
+- LUGG-382 - Added the ability to remove the ISU nameplate from the Suitcase header
+- LUGG-575 - Improvements to the code quality in suitcase_config
+
+Luggage_ISU 3.2.3-3.7, 2015-08-19
+Drupal 7.39, 2015-08-19
+-------------------------
+Merged with upstream Luggage 3.2.3
+- LUGG-543 - Drupal 7.39 SA-CORE-2015-003
+
+Luggage_ISU 3.2.2-3.6, 2015-08-18
+Drupal 7.38, 2015-06-17
+-------------------------
+Merged with upstream Luggage 3.2.2
+LUGG-346 - Fixed different shades of grey on lists
+LUGG-420 - Fixed panels styling for different configurations
+LUGG-435 - Field labels should be bold when help text present
+LUGG-531 - Add LUGGAGE_ISU_VERSION.php
+
+Luggage_ISU 3.2.1-3.5, 2015-07-09
+Drupal 7.38, 2015-06-17
+-------------------------
+Merged with upstream Luggage 3.2.1
+
+Luggage_ISU 3.2.0-3.5, 2015-07-01
+Drupal 7.38, 2015-06-17
+-------------------------
+- LUGG-499 - Shibboleth user admin should have "administer shib future roles"
+
+Luggage_ISU 3.1.3-3.4, 2015-06-26
+Drupal 7.38, 2015-03-18
+-------------------------
+- LUGG-297 - Suitcase on IE Compatibility Mode is wonky
+- LUGG-418 - Fix whitespace on biblio single-node display
+- LUGG-432 - Bullet styling - second level bullets don't retain same style as CKEditor
+- LUGG-433 - Footer text turns caps lock on or different font if you select bold or a style heading
+- LUGG-434/suitcase #17/suitcase #17 - A tags have block styling on page nodes
+- LUGG-449 - Tables turn yellow on hover
+- LUGG-489/suitcase #23 - Child Child Category Styling
+
+Luggage_ISU 3.1.3-3.2 2015-06-18
+Drupal 7.38, 2015-06-18
+------------------------
+Hot-fixed Drupal
+
+Luggage_ISU 3.1.2-3.3, 2015-04-27
+Drupal 7.35, 2015-03-18
+-------------------------
+- LUGG-352 - Curly quotes in READMEs
+- LUGG-385 - Update Shibboleth site access permissions
+- LUGG-398 - Capture 'shibboleth user admin' role in luggage_isushib module
+- LUGG-399 - Migrate data in pubcookie_to_shibboleth script
+- LUGG-406 - Default value for isushib_login_dir is incorrect
+- LUGG-404 - Update luggage_isu.sh for isushib and remove pubcookie
+- LUGG-413/luggage_isu #8 - pubcookie_to_shibboleth.sh fails to do DB updates when run on live
+- LUGG-414/luggage_isu #9 - pubcookie_to_shibboleth.sh leaves some variables
+- LUGG-416 - Make isushib a submodule
+- LUGG-419/luggage_isu #11 - pubcookie_to_shibboleth.sh doesn't migrate pubcookiesiteaccess_assignable_roles
+
+Luggage_ISU 3.1.2-3.2, 2015-03-19
+Drupal 7.35, 2015-03-18
+-------------------------
+Hot-fixed Drupal
+
+Luggage_ISU 3.1.1-3.2, 2015-2-25
+Drupal 7.34, 2014-11-19
+--------------------------
+- LUGG-377 - Improve LUGGAGE_ISU_CHANGELOG
+- LUGG-378 - Clarify branch methodology in README.md
+
+Luggage_ISU 3.1.0-3.1, 2015-2-2
+Drupal 7.34, 2014-11-19
+--------------------------
+- LUGG-279/suitcase #16 - News items should have friendly dates
+- LUGG-314/suitcase #14 - Decreased scope of destructive selectors
+- LUGG-315/suitcase #13 - Category "menu" lacks contrast
+- LUGG-318/suitcase #15 - Ensure Iowa State University nameplate alt attribute
+
+Luggage_ISU 3.0.0-3.0, 2015-1-13
+Drupal 7.34, 2014-11-19
+--------------------------
+- LUGG-272 - Support Shibboleth authentication
+- Altered scripts/libs/luggage_isu.sh to remove Pubcookie and include Shibboleth
+- LUGG-319 - Remove pubcookie authentication support
+
+Luggage_ISU 2.5.0-2.1, 2014-12-30
+Drupal 7.34, 2014-11-19
+--------------------------
+- LUGG-124 - Link to Exchange is changing
+- LUGG-186 - Long names with hyphens aren't able to wrap
+- LUGG-239/suitcase #8 - Universal block styling that works for programmatic blocks and views blocks across the suitcase theme
+- LUGG-259/suitcase #6 - Slider styling fixed for default themes - https://github.com/isubit/suitcase/issues/6
+- LUGG-276 - <sub> and <sup> formatting being stripped out in suitcase css
+
+Luggage_ISU 2.4.2-2.0, 2014-11-27
+Drupal 7.34, 2014-11-19
+--------------------------
+Hot-fixed Drupal
+
+Luggage_ISU 2.4.1-2.0, 2014-11-09
+Drupal 7.33, 2014-11-07
+--------------------------
+Hot-fixed Drupal
+
+Luggage_ISU 2.4.0-2.0, 2014-10-31
+Drupal 7.32, 2014-10-15
+--------------------------
+- LUGG-117 - Need visual differentiation for news titles
+- LUGG-172 - Suitcase collapsible menu button should not show up if there are no menu items
+- LUGG-221 - Book module block 'Book Navigation' styling needs work
+- LUGG-225 - "Pubcookie User Admin" role should have "Administer pubcookie future roles"
+- suitcase #4 - Indicate unpublished state

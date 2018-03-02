@@ -1,0 +1,21 @@
+<?php
+
+function luggage_ui_uninstall() {
+  
+  $module_list = array('dblog','field_ui','views_ui','ds_ui','rules_admin');
+  
+  module_disable($module_list, $disable_dependents = FALSE);
+  drupal_uninstall_modules($module_list, $uninstall_dependents = FALSE);
+
+}
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_ui_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_ui')
+    ->execute();
+}

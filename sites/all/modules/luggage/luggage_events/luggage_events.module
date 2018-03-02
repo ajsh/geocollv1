@@ -1,0 +1,55 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_events feature.
+ */
+
+include_once 'luggage_events.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_events_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_events']);
+}
+
+/*
+ * Implements hook_views_pre_build()
+ */
+function luggage_events_views_pre_build(&$view) {
+  if ($view->name == 'events') {
+    drupal_add_css(drupal_get_path('module','luggage_events').'/css/luggage_events.css');
+  }
+}
+
+/*
+ * Implements hook_node_view()
+ */
+function luggage_events_node_view($node, $view_mode, $langcode) {
+  if ($node->type == 'event' && $view_mode == 'full') {
+    drupal_add_css(drupal_get_path('module','luggage_events').'/css/luggage_events.css');
+  }
+}
+
+/*
+ * The link module helpfully tells you the maximum length limit of the title.
+ * This is rather pointless and distracting. We zap this out.
+ *
+ * The Link module builds its two-part form element (title and location)
+ * in a process function so we cannot change the description text using
+ * a simple form_alter(). Instead, we must modify the info for this element
+ * to point it to our own process function, which we run after the link
+ * field's process function to overwrite descriptions with our own.
+ */
+function luggage_events_element_info_alter(&$type) {
+  $type['link_field']['#process'][] = 'luggage_events_field_process';
+}
+
+function luggage_events_field_process($element, $form_state, $complete_form) {
+  if (isset($complete_form['#bundle']) && $complete_form['#bundle'] == 'event') {
+    $element['title']['#description'] = t('Where is this event happening?');
+    $element['url']['#description'] = t('Optional link to event location.');
+  }
+  return $element;
+}

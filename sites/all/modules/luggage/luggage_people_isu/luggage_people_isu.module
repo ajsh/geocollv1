@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Tweaks for user profile creation that are specific to ISU go here.
+ * Note that this is the 'people' content type, not a native
+ * Drupal user entity.
+ */
+
+/**
+ * Implement hook_node_presave().
+ * 
+ * A new user profile is about to be saved.
+ * 
+ * Note that since objects are passed by reference implicitly
+ * there is no need to return $node from this hook.
+ */
+function luggage_people_isu_node_presave($node) {
+  // Respond only to new nodes of type 'people' with street address.
+  if (isset($node->is_new) && $node->type == 'people') {
+    // ZIP+4 formatting: 500113222 becomes 50011-3222
+    if (isset($node->field_people_postal[LANGUAGE_NONE][0]['value']) && !strpos($node->field_people_postal[LANGUAGE_NONE][0]['value'], '-') && strlen($node->field_people_postal[LANGUAGE_NONE][0]['value']) == 9) {
+      $node->field_people_postal[LANGUAGE_NONE][0]['value'] = str_replace('50011', '50011-', $node->field_people_postal[LANGUAGE_NONE][0]['value']);
+    }
+  }
+}
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_people_isu_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_people_isu']);
+}

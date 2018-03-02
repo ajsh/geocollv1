@@ -1,0 +1,130 @@
+How to read this changelog:
+
+The LUGG- prefix refers to JIRA issue numbers; the # prefix refers to Github issue numbers.
+
+The Luggage_ISU_BIT version number shows the upstream Luggage_ISU and Luggage versions it is based on
+as well as the Luggage_ISU_BIT version. For example, Luggage_ISUBIT 3.1.0-3.1-3.0 is based
+on the upstream Luggage_ISU release 3.1.0-3.1 and Luggage release 3.1.0.
+
+Luggage_ISU_BIT 3.5.3-5.3-3.15, 2017-10-03
+Drupal 7.56, 2017-06-21
+-------------------------
+Merged with upstream luggage_isu/3.5.3-5.3
+- LUGG-1010 - Fixed luggage_piwik submodule to use the bitbucket.org URL instead of bitbucket.com
+
+Luggage_ISU_BIT 3.5.2-5.2-3.14, 2017-06-21
+Drupal 7.56, 2017-06-21
+-------------------------
+Merged with upstream luggage_isu/3.5.2-5.2
+- LUGG-1000 Drupal 7.56 SA-CORE-2017-003
+
+Luggage_ISU_BIT 3.5.1-5.1-3.13, 2017-03-22
+Drupal 7.54, 2017-02-01
+-------------------------
+Merged with upstream luggage_isu/5.1 3.5.1-5.1
+
+Luggage_ISU_BIT 3.5.0-5.0-3.12, 2017-02-09
+Drupal 7.54, 2017-02-01
+-------------------------
+Merged with upstream luggage_isu/5.0 3.5.0-5.0
+- LUGG-937 - Default theme on build is now suitcase_interim
+
+Luggage_ISU_BIT 3.4.2-4.7-3.11, 2016-11-16
+Drupal 7.52, 2016-11-16
+-------------------------
+Merged with upstream luggage_isu/4.7 3.4.2-4.7
+- LUGG-879 Drupal 7.52 SA-CORE-2016-005
+
+Luggage_ISU_BIT 3.4.1-4.6-3.10, 2016-08-19
+Drupal 7.50, 2016-07-07
+-------------------------
+Merged with upstream luggage_isu/development 3.4.1-4.6
+
+Luggage_ISU_BIT 3.4.0-4.5-3.9, 2016-06-23
+Drupal 7.44, 2016-06-15
+-------------------------
+Merged with upstream luggage_isu/development 3.4.0-4.5
+
+Luggage_ISU_BIT 3.3.2-4.4-3.8, 2016-06-15
+Drupal 7.44, 2016-06-15
+-------------------------
+Merged with upstream luggage_isu/development 3.3.2-4.4
+- LUGG-731 - Drupal 7.44 SA-CORE-2016-002
+
+Luggage_ISU_BIT 3.3.1-4.3-3.7, 2016-02-24
+Drupal 7.43, 2016-02-24
+-------------------------
+Merged with upstream luggage_isu/development 3.3.1-4.3
+- LUGG-642 - Drupal 7.43 SA-CORE-2016-001
+
+Luggage_ISU_BIT 3.3.0-4.2-3.6, 2015-01-15
+Drupal 7.41, 2015-10-21
+-------------------------
+Merged with upstream luggage_isu/development 3.3.0-4.2
+- LUGG-614 - Updated ISUITC to ISUBIT
+
+Luggage_ISU_BIT 3.2.5-4.1-3.5, 2015-10-21
+Drupal 7.41, 2015-10-21
+-------------------------
+Merged with upstream luggage_isu/development 3.2.5-4.1
+- LUGG-604 - Drupal 7.41 SA-CORE-2015-004
+
+Luggage_ISU_BIT 3.2.4-4.0-3.4, 2015-10-12
+Drupal 7.39, 2015-08-19
+-------------------------
+Merged with upstream luggage_isu/development 3.2.4-4.0
+- LUGG-591 - Precautions to prevent e-mails from dev/test/preview environments
+
+Luggage_ISU_BIT 3.2.3-3.7-3.2, 2015-08-20
+Drupal 7.39, 2015-08-19
+-------------------------
+Merged with upstream luggage_isu/development 3.2.3-3.7
+- LUGG-543 - Drupal 7.39 SA-CORE-2015-003
+
+Luggage_ISU_BIT 3.2.2-3.6-3.2, 2015-08-19
+Drupal 7.38, 2015-06-17
+-------------------------
+Merged with upstream luggage_isu/development 3.2.2-3.6
+LUGG-354 - Add strongarm variables for /tmp and private files in luggage_isubit_vars
+LUGG-541 - Add LUGGAGE_ISU_BIT_VERSION.php
+
+Luggage_ISU_BIT 3.2.1-3.5-3.1, 2015-07-09
+Drupal 7.38, 2015-06-17
+-------------------------
+Merged with upstream luggage_isu/development 3.2.1-3.5
+
+Luggage_ISU_BIT 3.2.0-3.5-3.1, 2015-07-01
+Drupal 7.38, 2015-06-17
+-------------------------
+Merged with upstream luggage_isu/development
+
+Luggage_ISU_BIT 3.1.2-3.2-3.1, 2015-03-19
+Drupal 7.35, 2015-03-18
+-------------------------
+Hot-fixed Drupal
+
+Luggage_ISU_BIT 3.1.1-3.2-3.1, 2015-03-01
+Drupal 7.34, 2014-11-19
+--------------------------
+- LUGG-380 - shib or pubcookie proxy should not be committed to site repos
+
+Luggage_ISU_BIT 2.5.0-2.1-2.0, 2014-12-30
+Drupal 7.34, 2014-11-19
+--------------------------
+Merged with upstream luggage_isu/development
+
+Luggage_ISU_BIT 2.4.2-2.0, 2014-11-27
+Drupal 7.34, 2014-11-19
+--------------------------
+Hot-fixed Drupal
+
+Luggage_ISU_BIT 2.4.1-2.0, 2014-11-09
+Drupal 7.33, 2014-11-07
+--------------------------
+Hot-fixed Drupal
+
+Luggage_ISU_BIT 2.4.0-2.0-2.0, 2014-11-03
+Drupal 7.32, 2014-10-15
+--------------------------
+Added Luggage_isubit_vars as a submodule to hold isubit-specific variables
+Added Luggage_isubit_solr as a submodule to hold isubit-specific Solr configuration

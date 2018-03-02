@@ -1,0 +1,14 @@
+.field.field-name-field-event-when {
+    margin-bottom: 10px;
+    float: right;
+}
+
+.field.field-name-field-event-when span {
+    font-size: 14px;
+    color: #336599;
+    font-style: italic;
+}
+
+.field.field-name-field-event-type {
+    margin-bottom: 10px;
+}

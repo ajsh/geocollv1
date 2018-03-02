@@ -1,0 +1,45 @@
+.view-expertise .item-list>h3 {
+    width: 100%;
+    text-align: center;
+    float: left;
+}
+
+.view-expertise .item-list>ul {
+    width: 100%;
+    float: left;
+}
+
+.view-expertise .item-list>ul.item-list-item>li.views-row {
+    width: calc(50% - 15px);
+    float: left;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    background: rgba(255,255,255,0.5);
+    margin-bottom: 15px;
+    margin-right: 15px;
+    min-height: 125px;
+}
+
+.view-expertise .item-list>ul.item-list-item>li>.views-row:last-child {
+    margin-right: 0;
+}
+
+.view-expertise .item-list {
+    margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+    .view-expertise .item-list>h3 {
+        width: 25%;
+        text-align: right;
+        padding-right: 20px;
+    }
+
+    .view-expertise .item-list>ul {
+        width: 75%;
+    }
+
+    .view-expertise .item-list>ul.item-list-item>li.views-row {
+        width: calc(25% - 15px);
+    }
+}

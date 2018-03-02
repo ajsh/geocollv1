@@ -1,0 +1,254 @@
+/*------------------------begin people node page--------------------*/
+
+article.node {
+    border-top: 1px solid #bbb;
+}
+
+.node-people-form label {
+    color: #444;
+}
+
+.node-people .field-name-field-people-category{
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.node-people .field-name-field-people-category a{
+    color: #333;
+}
+
+.node-people .field-name-field-people-position {
+  color: #333;
+  font-size: 1.4em;
+}
+
+/* clearing float following postal float */
+.node-people .field-name-field-people-postal + div {
+  clear:both;
+}
+
+#edit-field-people-title,
+#edit-field-people-first-name,
+#edit-field-people-middle-initial,
+#edit-field-people-last-name {
+    float: left;
+    height: 8em;
+    padding-right: 1em;
+}
+
+#edit-field-people-title select {
+    height: 3em;
+    margin-top: 0.4em;
+}
+
+#edit-field-people-title select:hover {
+    cursor: pointer;
+}
+
+#edit-field-tags input[type="text"] {
+    width: 100%;
+}
+
+#edit-field-people-image input[type="text"] {
+    width: 100%;
+}
+
+#edit-field-tags,
+#edit-field-people-website {
+  clear: both;
+}
+
+#edit-field-people-street,
+#edit-field-people-email,
+#edit-field-people-city,
+#edit-field-people-state,
+#edit-field-people-postal,
+#edit-field-people-phone {
+  width: 35%;
+}
+
+#edit-field-tags,
+#edit-field-people-affiliation,
+#edit-field-people-other-affiliations,
+#edit-field-people-image,
+#edit-field-people-bio,
+#edit-field-people-cv {
+    border-bottom: 1px solid #ccc;
+}
+
+#edit-field-tags {
+    border-top: 1px solid #ccc;
+}
+
+/*---------- Area of Expertise Grid ----------*/
+.views-field.views-field-field-people-position.profile-position {
+  width: 50%;
+  font-size: 1.1em;
+}
+
+.views-field.views-field-field-people-position {
+    font-style: italic;
+    margin-bottom: 1em;
+    color: rgb(36,109,73);
+}
+
+/*---------- People Node View ----------*/
+.node-people .field-name-field-people-image {
+    float: left;
+    margin: 10px 20px 20px 0;
+}
+
+.field-name-field-people-image + .field:not(.field-name-field-people-bio) {
+    clear: both;
+}
+
+.field-name-field-people-bio + .field {
+    clear: both;
+}
+
+.field-name-field-people-title-category {
+    float: left;
+    margin-left: 1em;
+}
+
+.field-name-field-people-title-category a {
+    display: inline-block;
+    line-height: 40px;
+    font-size: 1.25em;
+    font-style: italic;
+    color: rgba(52, 52, 52, 0.6);
+}
+
+.field.field-type-taxonomy-term-reference {
+    margin: 0;
+}
+
+.node-people .field h3.field-label {
+  font-size: 1.071em;
+  font-weight: bold;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+#section-content .region-inner .tabs,
+#section-content .region-inner .block {
+    clear: both;
+}
+
+.field.field-name-field-people-expertise,
+.field.field-name-field-people-other-affiliations,
+.field.field-name-field-people-affiliation,
+.field.field-name-field-people-interdepartmental,
+.field.field-name-field-people-teaching,
+.field.field-name-field-people-major,
+.field.field-name-field-people-advisor,
+.field.field-name-field-people-education,
+.field.field-name-field-people-cv,
+.group-contact {
+    background: rgba(255,255,255,0.5);
+    border: 1px solid #ddd;
+}
+
+.field.field-name-field-people-expertise .field-label,
+.field.field-name-field-people-other-affiliations .field-label,
+.field.field-name-field-people-affiliation .field-label,
+.field.field-name-field-people-interdepartmental .field-label,
+.field.field-name-field-people-teaching .field-label,
+.field.field-name-field-people-major .field-label,
+.field.field-name-field-people-advisor .field-label,
+.field.field-name-field-people-education .field-label,
+.field.field-name-field-people-cv .field-label {
+    width: 25%;
+    padding: 5px;
+    color: #666;
+    display: inline-block;
+    font-weight: bold;
+    text-align: right;
+    box-sizing: border-box;
+    float: left;
+}
+
+.field.field-name-field-people-expertise .field-items,
+.field.field-name-field-people-expertise .links.inline,
+.field.field-name-field-people-other-affiliations .field-items,
+.field.field-name-field-people-affiliation .field-items,
+.field.field-name-field-people-interdepartmental .field-items,
+.field.field-name-field-people-teaching .field-items,
+.field.field-name-field-people-major .field-items,
+.field.field-name-field-people-advisor .field-items,
+.field.field-name-field-people-education .field-items,
+.field.field-name-field-people-cv .field-items {
+    padding: 5px;
+    display: inline-block;
+    width: 75%;
+    box-sizing: border-box;
+}
+
+.field.field-name-field-people-expertise .field-item,
+.field.field-name-field-people-expertise .links.inline > li,
+.field.field-name-field-people-other-affiliations .field-item,
+.field.field-name-field-people-affiliation .field-item,
+.field.field-name-field-people-interdepartmental .field-item,
+.field.field-name-field-people-teaching .field-item,
+.field.field-name-field-people-major .field-item,
+.field.field-name-field-people-advisor .field-item,
+.field.field-name-field-people-education .field-item,
+.field.field-name-field-people-cv .field-item {
+    display: block;
+}
+
+.group-contact {
+    padding: 0 20px 20px 20px;
+}
+
+.group-contact > legend {
+    padding: 10px;
+    color: #666;
+    font-weight: bold;
+    background: none;
+    border: none;
+    position: initial;
+    width: auto;
+    height: auto;
+    text-indent: 0;
+}
+
+.group-contact .fieldset-wrapper {
+  margin: 0;
+}
+
+.group-contact .field {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.group-contact .field .field-label {
+  width: 15%;
+  text-align: right;
+  box-sizing: border-box;
+  padding-right: 10px;
+}
+
+.group-contact .field.field-name-field-people-street,
+.group-contact .field.field-name-field-people-city,
+.group-contact .field.field-name-field-people-state,
+.group-contact .field.field-name-field-people-postal {
+    display: inline-block;
+    margin-bottom: 0;
+    margin-right: 5px;
+}
+
+.group-contact .field.field-name-field-people-street .field-label,
+.group-contact .field.field-name-field-people-city .field-label,
+.group-contact .field.field-name-field-people-state .field-label,
+.group-contact .field.field-name-field-people-postal .field-label {
+    width: inherit;
+}
+
+.field.field-name-field-people-expertise .links.inline > li {
+  font-size: 1.071em;
+}
+
+
+.field.field-name-field-people-bio {
+    margin: 10px 0;
+}

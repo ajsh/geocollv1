@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_video_solr feature.
+ */
+
+include_once 'luggage_video_solr.features.inc';

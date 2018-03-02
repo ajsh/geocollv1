@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_ckeditor feature.
+ */
+
+include_once 'luggage_ckeditor.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_ckeditor_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_ckeditor']);
+}

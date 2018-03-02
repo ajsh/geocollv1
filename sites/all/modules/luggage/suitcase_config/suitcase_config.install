@@ -1,0 +1,172 @@
+<?php
+/**
+ * @file
+ * Code for the suitcase_config install, enable, and upgrades.
+ */
+
+/**
+ * Implements hook_enable()
+ */
+function suitcase_config_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'suitcase_config')
+    ->execute();
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'theme')
+    ->condition('name', 'suitcase')
+    ->execute();
+}
+
+function suitcase_config_install() {
+
+  // Remove unwanted blocks.
+  db_update('block')
+    ->fields(array('region' => '-1', 'status' => '0', ))
+    ->condition('delta', 'help')
+    ->condition('theme', 'suitcase')
+    ->execute();
+  db_update('block')
+    ->fields(array('region' => '-1', 'status' => '0', ))
+    ->condition('delta', 'navigation')
+    ->condition('theme', 'suitcase')
+    ->execute();
+  db_update('block')
+    ->fields(array('region' => '-1', 'status' => '0', ))
+    ->condition('delta', 'management')
+    ->condition('theme', 'suitcase')
+    ->execute();
+  db_update('block')
+    ->fields(array('region' => '-1', 'status' => '0', ))
+    ->condition('delta', 'login')
+    ->condition('theme', 'suitcase')
+    ->execute();
+
+  // Enable blocks.
+  db_update('block')
+    ->fields(array('region' => 'banner', 'status' => '1', 'pages' => "<front>\nsearch\nsearch/*", ))
+    ->condition('module', 'search')
+    ->condition('delta', 'form')
+    ->condition('theme', 'suitcase')
+    ->execute();
+  db_update('block')
+    ->fields(array('region' => 'footer_first', 'status' => '1', 'title' => '<none>', ))
+    ->condition('delta', 'menu-footer')
+    ->condition('theme', 'suitcase')
+    ->execute();
+  try {
+    // Enable Apache Solr 'More Like This'.
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-17'))
+      ->condition('module', 'apachesolr_search')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'mlt-001')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-16'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'GiIy4zr9Gu0ZSa0bumw1Y9qIIpIDf1wu')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-15'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', '4Zh0ggJMBgeeYbrLPJCe8EML3A6PLE0J')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-14'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'O2ynE11RWC2FDIGp46TXLK98k3i4HZIe')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-13'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'j045rvPRi16WQmzotiI9CF4TeHlaTrRZ')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-12'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'mo10eVoL905Qwndxck1XcD0dZWgc0x7s')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-11'))
+      ->condition('module', 'facetapi'
+      )->condition('theme', 'suitcase')
+      ->condition('delta', 'vhOPY7CVRSum8C8RHz49k25n6esZvQFo')
+      ->execute();
+    db_update('block')
+      ->fields(array('region' => 'sidebar_first', 'status' => '1', 'weight' => '-10'))
+      ->condition('module', 'facetapi')
+      ->condition('theme', 'suitcase')
+      ->condition('delta', 'O6jwi5uI0fhqDO0t0m0vRrAoxFiR7sx6')
+      ->execute();
+  } catch (Exception $e) {
+    throw new Exception('An error occurred while placing facet blocks', 0, $e);
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function suitcase_config_uninstall() {
+  variable_del('suitcase_config_logo');
+  variable_del('dept_url');
+  variable_del('suitcase_config_background_color');
+  variable_del('suitcase_config_primary_text_color');
+  variable_del('suitcase_config_secondary_text_color');
+  variable_del('suitcase_config_header_color');
+  variable_del('suitcase_config_header_border_color');
+  variable_del('suitcase_config_footer_color');
+  variable_del('suitcase_config_blackbar_display');
+  variable_del('suitcase_config_isu_nameplate_display');
+}
+
+/**
+ * Copy logo from Omega config system to suitcase_config.
+ */
+function suitcase_config_update_7201() {
+  // If we don't already have a logo configured in suitcase_config, copy the omega logo.
+  if (!variable_get('suitcase_config_logo')) {
+    $omega_settings = variable_get('theme_suitcase_settings');
+
+    // If the omega configuration has a logo path defined and the display logo checkbox is checked.
+    if (!empty($omega_settings['logo_path']) && $omega_settings['toggle_logo'] == 1) {
+      $old_uri = $omega_settings['logo_path'];
+      $filename = basename($old_uri);
+      $new_uri = "public://suitcase_config/" . $filename;
+      $dir = "public://suitcase_config";
+
+      // Copy the omega logo and manage the file with suitcase_config.
+      file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+      if (file_unmanaged_copy($old_uri, $new_uri)) {
+
+        global $user;
+        $file = new stdClass;
+        $file->uid = $user->uid;
+        $file->filename = $filename;
+        $file->uri = $new_uri;
+        $file->filemime = file_get_mimetype($new_uri);
+        $file->status = FILE_STATUS_PERMANENT;
+        $file->timestamp = REQUEST_TIME;
+        $file->filesize = @filesize($new_uri);
+
+        $file = file_save($file);
+
+        file_usage_add($file, 'suitcase_config', 'logo', $file->fid);
+
+        $suitcase_config_logo = array(
+          'id' => $file->fid,
+          'uri' => $file->uri,
+        );
+        variable_set('suitcase_config_logo', $suitcase_config_logo);
+        return t("Migrated @filename to suitcase_config symbol", array('@filename' => $filename));
+      }
+    }
+  }
+}

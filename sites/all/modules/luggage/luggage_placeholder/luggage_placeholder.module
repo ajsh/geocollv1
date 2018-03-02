@@ -1,0 +1,75 @@
+<?php
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_placeholder_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_placeholder']);
+}
+
+/**
+ * Implements hook_field_form_field_ui_field_edit_form_alter()
+ */
+function luggage_placeholder_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if (in_array($form['#instance']['widget']['type'], luggage_placeholder_get_widget_types())) {
+    $form['instance']['placeholder'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Placeholder'),
+      '#description' => t('Placeholder value for this field instance'),
+      '#weight' => -4,
+      '#default_value' => isset($form['#instance']['placeholder']) ? $form['#instance']['placeholder'] : '',
+    );
+  }
+}
+
+/**
+ * Implments hook_field_widget_form_alter()
+ */
+function luggage_placeholder_field_widget_form_alter(&$element, &$form_state, $context) {
+  if (in_array($context['instance']['widget']['type'], luggage_placeholder_get_widget_types()) &&
+    isset($context['instance']['placeholder'])) {
+    $placeholder = luggage_placeholder_get_widgets($context['instance']['widget']['type']);
+    if($placeholder == 'autocomplete') {
+      $element['#attributes']['placeholder'] = check_plain($context['instance']['placeholder']);
+    } else {
+      $element[$placeholder]['#attributes']['placeholder'] = check_plain($context['instance']['placeholder']);
+    }
+  }
+}
+
+function luggage_placeholder_get_widgets($widget_type = NULL) {
+  static $widgets = array();
+
+  if (empty($widgets)) {
+    $widgets = module_invoke_all('luggage_placeholder_info');
+  }
+
+  if (isset($widget_type)) {
+    return isset($widgets[$widget_type]) ? $widgets[$widget_type] : FALSE;
+  }
+
+  return $widgets;
+}
+
+function luggage_placeholder_get_widget_types() {
+  $widgets = luggage_placeholder_get_widgets();
+  return array_keys($widgets);
+}
+
+/**
+ * Implements hook_luggage_placeholder_info()
+ */
+function luggage_placeholder_luggage_placeholder_info() {
+  return array(
+    'text_textfield' => 'value',
+    'text_textarea' => 'value',
+    'text_textarea_with_summary' => 'summary',
+    'number' => 'value',
+    'email_textfield' => 'email',
+    'taxonomy_autocomplete' => 'autocomplete',
+  );
+}

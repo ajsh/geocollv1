@@ -1,0 +1,80 @@
+.view-id-news td {
+    background: none repeat scroll 0 0 #EEEEEE;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 0 2px;
+    padding: 5px;
+}
+.views-label.views-label-term-node-tid.news-terms {
+    background-color: #D5D0C2;
+    border-radius: 4px 4px 0px 0px;
+    min-width: 200px;
+    padding: 3px;
+}
+.view-id-news td {
+    background: none repeat scroll 0 0 #EEEEEE;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 0 2px;
+    padding: 5px;
+}
+.view.view-news.view-id-news.view-display-id-page.view-dom-id-190079887bbc7e77b645b0d83eced1b5 {
+    border-bottom: 0 none !important;
+    border-radius: 3px 3px 3px 3px;
+    box-shadow: 0 0 2px #9D9D9D;
+    padding-top: 5px;
+}
+.view-id-news td {
+  background: none repeat scroll 0 0 #EEEEEE;
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 0 2px;
+  padding: 5px;
+}
+.views-label.views-label-term-node-tid.news-terms {
+  background-color: #D5D0C2;
+  border-radius: 4px 4px 0px 0px;
+  min-width: 200px;
+  padding: 3px;
+}
+.view-id-news td {
+  background: none repeat scroll 0 0 #EEEEEE;
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 0 2px;
+  padding: 5px;
+}
+.view.view-news.view-id-news.view-display-id-page.view-dom-id-190079887bbc7e77b645b0d83eced1b5 {
+  border-bottom: 0 none !important;
+  border-radius: 3px 3px 3px 3px;
+  box-shadow: 0 0 2px #9D9D9D;
+  padding-top: 5px;
+}
+.views-field-field-people-image .field-content img {
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 0 2px #737373;
+  padding: 5px;
+}
+.views-field.views-field-field-news-images {
+  float: left;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+  max-width: 120px;
+}
+.views-field.views-field-field-news-images img {
+  max-width: 100%;
+  height: auto;
+}
+
+/*#block-views-news-block {*/
+  /*border: #D3D3D3;*/
+  /*border-style: solid;*/
+  /*border-width: .1em;*/
+  /*padding: .4em;*/
+/*}*/
+
+/*#block-views-news-block .views-row,*/
+/*.view-display-id-page .views-row {*/
+  /*padding: .8em;*/
+/*}*/
+
+/*#block-views-news-block .views-row-odd,*/
+/*.view-display-id-page .views-row-odd {*/
+  /*background-color: rgba(0,0,0,0.1);*/
+/*}*/

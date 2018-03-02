@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_isushib_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_isushib')
+    ->execute();
+}
+
+/**
+ * Remove outdated pubcookie modules from system table.
+ */
+function luggage_isushib_update_7001() {
+  $modules = array('pubcookie', 'pubcookiesiteaccess', 'luggage_pubcookie');
+
+  foreach ($modules as $module) {
+    // check if module is enabled.
+    $isEnabled = db_select('system', 's')
+      ->fields('s', array('status'))
+      ->condition('name', $module, '=')
+      ->condition('status', 0, '=')
+      ->execute()
+      ->fetchAssoc();
+
+    if (!$isEnabled['status']) {
+      // If the module is not enabled we can delete it from the system table.
+      $numDeleted = db_delete('system')
+        ->condition('name', $module, '=')
+        ->execute();
+    }
+
+  }
+}

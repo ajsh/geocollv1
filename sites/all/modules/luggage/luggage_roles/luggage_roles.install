@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_roles_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_roles')
+    ->execute();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function luggage_roles_requirements($phase) {
+  // Require version 7.x-1.4 or greater of scheduler module.
+  // Running on all phases (install, update and runtime) to enforce updating
+  // scheduler module.
+
+  $t = get_t();
+
+  $requirements = array();
+
+  $scheduler_info = drupal_parse_info_file(drupal_get_path('module', 'scheduler') . '/scheduler.info');
+
+  // Ignore version check if dev version of module
+  if (stripos($scheduler_info['version'], 'dev') === FALSE) {
+
+    if (version_compare($scheduler_info['version'], '7.x-1.4') < 0) {
+      $requirements['luggage_roles_scheduler_version'] = array(
+        'title' => $t('Scheduler version'),
+        'value' => $scheduler_info['version'],
+        'description' => $t('luggage_roles requires <a href="@url">scheduler</a> version 7.x-1.4 or higher. Please update the scheduler module.', array('@url' => 'https://drupal.org/project/scheduler')),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+
+  return $requirements;
+
+}

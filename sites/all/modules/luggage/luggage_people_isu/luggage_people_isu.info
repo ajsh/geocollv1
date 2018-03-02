@@ -1,0 +1,7 @@
+name = luggage_people_isu
+description = ISU-specific tweaks for luggage_people
+core = 7.x
+package = Luggage
+version = 7.x-2.1
+project = luggage_people_isu
+features[features_api][] = api:2

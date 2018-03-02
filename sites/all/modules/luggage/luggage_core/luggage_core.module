@@ -1,0 +1,109 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_core feature.
+ */
+
+include_once 'luggage_core.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_core_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_core']);
+}
+
+/**
+ * Implements hook_requirements().
+ * @param $phase
+ * @return array
+ */
+function luggage_core_requirements($phase) {
+  if ($phase == 'runtime') {
+    $requirements = array();
+    foreach (_luggage_core_get_luggage_versions() as $product => $version) {
+      $requirements[$product] = array(
+        'title' => $product,
+        'value' => $version,
+      );
+    }
+    return $requirements;
+  }
+}
+
+/*
+ * @param $product - Optional product identifier
+ * @return array - Array of version numbers keyed by product
+ * @return string - If $product is defined returns the identified product
+ * @return FALSE - If $product not found
+ */
+function _luggage_core_get_luggage_versions($product = '') {
+  $versions = array();
+
+  foreach (glob(DRUPAL_ROOT . "/*_VERSION.php") as $filename) {
+    require_once($filename);
+    $var = trim(substr(basename($filename), 0, -12));
+    if (isset($version)) {
+      $versions[$var] = $version;
+    }
+  }
+
+  if (!empty($product)) {
+    if (isset($versions[$product])) {
+      return $versions[$product];
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  if (!empty($versions)) {
+    return $versions;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/*
+ * Implements hook_menu().
+ */
+function luggage_core_menu() {
+  // Implement a default 404 page so that blocks can be rendered on it.
+  $items['luggage-default-404-page'] = array(
+    'title' => t('Page not found'),
+    'page callback' => 'luggage_core_404_callback',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/*
+ * Page callback for luggage-default-404-page in luggage_core_menu().
+ */
+function luggage_core_404_callback() {
+  return t('The requested page "@path" could not be found.', array('@path' => request_uri()));
+}
+
+/**
+ * Implements HOOK_form_FORMID_alter().
+ */
+function luggage_core_form_system_site_information_settings_alter(&$form) {
+  // Add some documentation to the site-information form to show the default
+  // value for luggage-default-404-page.
+  $form['error_page']['site_404']['#description'] .= t(' The default value in Luggage is luggage-default-404-page.');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ * Hides the "Reset to Alphabetical" button for vocabularies on their
+ * configuration page.
+ */
+function luggage_core_form_taxonomy_overview_terms_alter(&$form, &$form_state) {
+  if (isset($form['actions']['reset_alphabetical'])) {
+    unset($form['actions']['reset_alphabetical']);
+  }
+}

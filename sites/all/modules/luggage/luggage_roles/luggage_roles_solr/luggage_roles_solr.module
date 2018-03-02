@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_roles_solr feature.
+ */
+
+include_once 'luggage_roles_solr.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_roles_solr_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_roles_solr']);
+}

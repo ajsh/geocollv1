@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function luggage_core_enable() {
+  db_update('system')
+    ->fields(array('weight' => 100000))
+    ->condition('type', 'module')
+    ->condition('name', 'luggage_core')
+    ->execute();
+
+  // Set the default value for 404 page.
+  if (variable_get('site_404', '') == '') {
+    variable_set('site_404', 'luggage-default-404-page');
+  }
+}
+
+/**
+ * Implements hook_disable().
+ */
+function luggage_core_disable() {
+  // Remove the default Luggage 404 page.
+  if (variable_get('site_404') == 'luggage-default-404-page') {
+    variable_del('site_404');
+  }
+}
+
+/**
+ * Add default Luggage 404 page.
+ */
+function luggage_core_update_7301() {
+  // If no value for site_404 set the default value.
+  if (variable_get('site_404', '') == '') {
+    variable_set('site_404', 'luggage-default-404-page');
+  }
+}
+
+/**
+ * Remove link to 404 menu item from the Navigation Menu.
+ */
+function luggage_core_update_7302() {
+  // Recreating menu_link_delete() functionality since this menu item link is
+  // apparently owned by the system module, so we need to force the delete by
+  // calling _menu_delete_item() with the force argument being true. We also
+  // only want to delete it from the Navigation menu.
+
+  $result = db_query("SELECT * FROM {menu_links} WHERE link_path = :link_path AND menu_name = :menu_name", array(':link_path' => 'luggage-default-404-page', ':menu_name' => 'navigation'));
+  foreach ($result as $link) {
+    _menu_delete_item($link, TRUE);
+  }
+}

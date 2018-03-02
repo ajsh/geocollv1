@@ -1,0 +1,116 @@
+<?php
+/**
+ * @file
+ * Code for the Announcements feature.
+ */
+
+include_once 'luggage_announcements.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_announcements_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_announcements']);
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function luggage_announcements_views_pre_render(&$view) {
+  $luggage_announcements_view = array('announcements', 'announcements');
+  if (in_array($view->name, $luggage_announcements_view)) {
+    //drupal_add_js(drupal_get_path('module', 'td_deals') . '/td_deals.js');
+    $luggage_announcements_module_path = drupal_get_path('module', 'luggage_announcements');
+    //drupal_add_js($contextual_module_path . '/contextual.js');
+    drupal_add_css($luggage_announcements_module_path . '/css/luggage_announcements.css');
+  }
+
+  if($view->name == 'luggage_announcements' && $view->current_display == 'announcement_slider') {
+    foreach($view->result as $key=>$announcement) {
+      if(!isset($view->result[$key]->field_field_announcement_alternate_url[0])) {
+        $url = drupal_get_path_alias('node/' . $announcement->nid);
+        $temp = array(
+          'rendered'=>array(
+            '#theme'=>'link_formatter_link_url',
+            '#element'=>array(
+              'url'=>$url,
+              'title'=>$url,
+              'display_url'=>$url
+            ),
+            '#display'=>array(
+              'type'=>'link_url',
+              'label'=>'hidden',
+              'module'=>'link',
+              'weight'=>0,
+              'settings'=>array()
+            )
+          )
+        );
+        array_push($announcement->field_field_announcement_alternate_url, $temp);
+      }
+    }
+    drupal_add_css(drupal_get_path('module', 'luggage_announcements') . '/css/luggage_announcements.slider.css');
+  }
+
+  if ($view->name == 'luggage_announcements' && $view->current_display == 'hero_header') {
+    foreach ($view->result as $key => $announcement) {
+      if (!isset($view->result[$key]->field_field_announcement_alternate_url[0])) {
+        $url = drupal_get_path_alias('node/' . $announcement->nid);
+        $temp = array('rendered' => $url);
+        array_push($announcement->field_field_announcement_alternate_url, $temp);
+      }
+    }
+    drupal_add_css(drupal_get_path('module', 'luggage_announcements') . '/css/luggage_announcements.hero.css');
+  }
+
+}
+
+
+// Adds CSS to view display of announcements node type but not the edit display
+function luggage_announcements_preprocess_page(&$vars) {
+  // Global node.
+  $node = menu_get_object();
+  if (!empty($node) && $node->type == 'announcements' && arg(2) === null) {
+    drupal_add_css(drupal_get_path('module', 'luggage_announcements') . '/css/luggage_announcements.css');
+  }
+
+  // Add custom flexslider.load.js. Removing the default flexslider.load.js is in luggage_announcements_js_alter.
+  drupal_add_js(drupal_get_path('module', 'luggage_announcements') . '/js/flexslider.load.js', array('type' => 'file', 'scope' => 'footer'));
+}
+
+// Adding support to discover template files
+/**
+ * Implements hook_theme_registry_alter()
+ **/
+function luggage_announcements_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'luggage_announcements');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _luggage_announcements_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _luggage_announcements_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_js_alter().
+ */
+function luggage_announcements_js_alter(&$javascript) {
+  // Replace flexslider.load.js with a patched version LUGG-1012.
+  if (isset($javascript[drupal_get_path('module', 'flexslider') . '/assets/js/flexslider.load.js'])) {
+    unset($javascript[drupal_get_path('module', 'flexslider') . '/assets/js/flexslider.load.js']);
+    // The addition of luggage_announcement's flexslider.load.js is done in luggage_announcements_preprocess_page().
+  }
+}

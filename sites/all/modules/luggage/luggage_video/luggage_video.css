@@ -1,0 +1,27 @@
+/* Responsive video */
+.field-item .embedded-video {
+  position: relative;
+  padding-bottom: 56.25%;
+  padding-top: 35px;
+  height: 0;
+  overflow: hidden;
+}
+
+.field-name-field-video-video .field-item iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+/* End responsive video */
+
+/* Hide transcript from sighted users */
+.field-name-field-video-transcript {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

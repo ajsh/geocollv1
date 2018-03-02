@@ -1,0 +1,75 @@
+<?php
+/**
+ * @file
+ * Code for the luggage_biblio feature.
+ */
+
+include_once 'luggage_biblio.features.inc';
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_biblio_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_biblio']);
+}
+
+// Adds CSS to Views
+/**
+ * Implements hook_views_pre_render().
+ */
+function luggage_biblio_views_pre_render(&$view) {
+  $luggage_biblio_view = array('luggage_biblio', 'luggage_biblio');
+  if (in_array($view->name, $luggage_biblio_view)) {
+    //drupal_add_js(drupal_get_path('module', 'td_deals') . '/td_deals.js');
+//    $luggage_biblio_module_path = drupal_get_path('module', 'luggage_biblio');
+    //drupal_add_js($contextual_module_path . '/contextual.js');
+    drupal_add_css(drupal_get_path('module', 'luggage_biblio') . '/css/luggage_biblio.css');
+  }
+}
+
+// Adds CSS to view display of luggage_biblio node type but not the edit display
+function luggage_biblio_preprocess_page(&$vars) {
+  // Global node.
+  $node = menu_get_object();
+  if (!empty($node) && $node->type == 'biblio' && arg(2) === null) {
+    drupal_add_css(drupal_get_path('module', 'luggage_biblio') . '/css/luggage_biblio.css');
+  }
+}
+
+// I don't like this, I would like to add css to the biblio path and nothing else.
+function luggage_biblio_init() {
+  global $user, $conf;
+  drupal_add_css(drupal_get_path('module', 'luggage_biblio') . '/css/luggage_biblio.css');
+
+  if ($user->uid === 0) { // Prevent caching of biblio pages for anonymous users so session variables work and thus filering works
+    $base = variable_get('luggage_biblio_base', 'luggage_biblio');
+    if (drupal_match_path($_GET['q'], "$base\n$base/*"))
+      $conf['cache'] = FALSE;
+  }
+}
+
+// Adding support to discover template files
+/**
+ * Implements hook_theme_registry_alter()
+ **/
+function luggage_biblio_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'luggage_biblio');
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _luggage_biblio_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+ */
+function _luggage_biblio_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}

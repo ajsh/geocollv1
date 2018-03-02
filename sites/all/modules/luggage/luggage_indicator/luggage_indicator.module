@@ -1,0 +1,49 @@
+<?php
+/**
+ * @file
+ * Drupal needs this blank file.
+ */
+
+/**
+ * Implements hook_update_projects_alter().
+ */
+function luggage_indicator_update_projects_alter(&$projects) {
+  // Hide a site-specific module from the list.
+  unset($projects['luggage_indicator']);
+}
+
+function luggage_indicator_node_view_alter(&$build) {
+  if(arg(0) == 'search') {
+    $build['field_content_type'] = array(
+      '#markup' => _luggage_indicator_get_identifier_element(node_type_get_name($build['#node']), 'ct-search', true),
+      '#weight' => -10000,
+    );
+  } else if(arg(0) == 'node') {
+    $build['field_content_type_indicator'] = array(
+      '#title' => 'Content Type Indicator',
+      '#label_display' => 'none',
+      '#weight' => -10000,
+      0 => array(
+        '#markup' => _luggage_indicator_get_identifier_element(node_type_get_name($build['#node']), 'ct-node', true)
+      )
+    );
+  }
+}
+
+function _luggage_indicator_get_identifier_element($name, $type, $title) {
+  $str = '<div class="content-type-indicator ct-' . $name . ' '. $type;
+
+  if($title) {
+    $str = $str . '" title="' . ucfirst($name) . ' content type';
+  }
+
+  $str = $str . '">';
+
+  if($type == 'block') {
+    $str = $str . ucfirst(substr($name, 0, 2)) . '</div>';
+  } else {
+    $str = $str . ucfirst($name) . '</div>';
+  }
+
+  return $str;
+}
